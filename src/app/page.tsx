@@ -1,14 +1,12 @@
 import Image from "next/image";
 import {
-  FiUsers,
   FiCalendar,
   FiCloud,
   FiLock,
   FiRefreshCw,
-  FiSettings,
   FiDatabase,
 } from "react-icons/fi";
-import { FaBolt, FaFingerprint, FaTasks, FaRegStickyNote, FaChartLine } from "react-icons/fa";
+import { FaBolt, FaTasks, FaRegStickyNote, FaChartLine } from "react-icons/fa";
 import { FiChevronRight } from "react-icons/fi";
 
 const primaryFeatures = [
