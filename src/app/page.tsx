@@ -1,104 +1,104 @@
 import Image from "next/image";
 import {
-  FiServer,
   FiUsers,
   FiCalendar,
   FiCloud,
   FiLock,
   FiRefreshCw,
-  FiShield,
   FiSettings,
   FiDatabase,
 } from "react-icons/fi";
-import { FaBolt, FaFingerprint } from "react-icons/fa";
-import { IconType } from "react-icons";
+import { FaBolt, FaFingerprint, FaTasks, FaRegStickyNote, FaChartLine } from "react-icons/fa";
 import { FiChevronRight } from "react-icons/fi";
 
 const primaryFeatures = [
   {
-    name: 'Server monitoring',
+    name: 'Gestión de tareas y proyectos',
     description:
-      'Non quo aperiam repellendus quas est est. Eos aut dolore aut ut sit nesciunt. Ex tempora quia. Sit nobis consequatur dolores incidunt.',
+      'Organiza tus actividades, proyectos y metas de estudio. Marca tareas como completadas y mantén el control de tus avances diarios.',
     href: '#',
-    icon: FaBolt,
+    icon: FaTasks,
   },
   {
-    name: 'Collaborate',
+    name: 'Notas inteligentes',
     description:
-      'Vero eum voluptatem aliquid nostrum voluptatem. Vitae esse natus. Earum nihil deserunt eos quasi cupiditate. A inventore et molestiae natus.',
+      'Toma notas rápidas, guarda ideas y organiza tus apuntes por carpetas o etiquetas. Todo tu conocimiento centralizado y fácil de buscar.',
     href: '#',
-    icon: FiUsers,
+    icon: FaRegStickyNote,
   },
   {
-    name: 'Task scheduling',
+    name: 'Seguimiento de hábitos',
     description:
-      'Et quod quaerat dolorem quaerat architecto aliquam accusantium. Ex adipisci et doloremque autem quia quam. Quis eos molestiae at iure impedit.',
+      'Registra y visualiza tus hábitos de estudio y desarrollo personal. Construye rachas y mide tu progreso con estadísticas claras.',
     href: '#',
-    icon: FiCalendar,
+    icon: FaChartLine,
   },
-]
+];
+
 const secondaryFeatures = [
   {
-    name: 'Push to deploy.',
-    description: 'Lorem ipsum, dolor sit amet consectetur adipisicing elit aute id magna.',
+    name: 'Recursos y enlaces útiles',
+    description: 'Guarda y organiza enlaces a videos, artículos y cursos relevantes para tu aprendizaje.',
     icon: FiCloud,
   },
   {
-    name: 'SSL certificates.',
-    description: 'Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo.',
+    name: 'Panel de productividad',
+    description: 'Visualiza tu progreso, tareas pendientes y hábitos en un dashboard intuitivo.',
+    icon: FaBolt,
+  },
+  {
+    name: 'Integración con calendario',
+    description: 'Sincroniza tus tareas con Google Calendar y recibe recordatorios importantes.',
+    icon: FiCalendar,
+  },
+  {
+    name: 'Seguridad y privacidad',
+    description: 'Tus datos están protegidos con autenticación segura y cifrado.',
     icon: FiLock,
   },
   {
-    name: 'Simple queues.',
-    description: 'Ac tincidunt sapien vehicula erat auctor pellentesque rhoncus.',
+    name: 'Notificaciones inteligentes',
+    description: 'Recibe alertas y recordatorios para mantenerte enfocado en tus objetivos.',
     icon: FiRefreshCw,
   },
   {
-    name: 'Advanced security.',
-    description: 'Lorem ipsum, dolor sit amet consectetur adipisicing elit aute id magna.',
-    icon: FaFingerprint,
-  },
-  {
-    name: 'Powerful API.',
-    description: 'Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo.',
-    icon: FiSettings,
-  },
-  {
-    name: 'Database backups.',
-    description: 'Ac tincidunt sapien vehicula erat auctor pellentesque rhoncus. ',
+    name: 'Respaldo automático',
+    description: 'Tus notas y tareas siempre seguras con backups automáticos.',
     icon: FiDatabase,
   },
-]
+];
+
 const stats = [
-  { id: 1, name: 'Developers on the platform', value: '8,000+' },
-  { id: 2, name: 'Daily requests', value: '900m+' },
-  { id: 3, name: 'Uptime guarantee', value: '99.9%' },
-  { id: 4, name: 'Projects deployed', value: '12m' },
-]
+  { id: 1, name: 'Usuarios autodidactas y estudiantes', value: '2,500+' },
+  { id: 2, name: 'Tareas completadas', value: '120,000+' },
+  { id: 3, name: 'Hábitos registrados', value: '35,000+' },
+  { id: 4, name: 'Notas creadas', value: '80,000+' },
+];
+
 const footerNavigation = {
   solutions: [
-    { name: 'Hosting', href: '#' },
-    { name: 'Data Services', href: '#' },
-    { name: 'Uptime Monitoring', href: '#' },
-    { name: 'Enterprise Services', href: '#' },
+    { name: 'Tareas', href: '#' },
+    { name: 'Notas', href: '#' },
+    { name: 'Hábitos', href: '#' },
+    { name: 'Recursos', href: '#' },
   ],
   support: [
-    { name: 'Pricing', href: '#' },
-    { name: 'Documentation', href: '#' },
-    { name: 'Guides', href: '#' },
+    { name: 'Precios', href: '#' },
+    { name: 'Documentación', href: '#' },
+    { name: 'Guías', href: '#' },
     { name: 'API Reference', href: '#' },
   ],
   company: [
-    { name: 'About', href: '#' },
+    { name: 'Sobre Ivory', href: '#' },
     { name: 'Blog', href: '#' },
-    { name: 'Jobs', href: '#' },
-    { name: 'Press', href: '#' },
+    { name: 'Empleos', href: '#' },
+    { name: 'Prensa', href: '#' },
     { name: 'Partners', href: '#' },
   ],
   legal: [
-    { name: 'Claim', href: '#' },
-    { name: 'Privacy', href: '#' },
-    { name: 'Terms', href: '#' },
+    { name: 'Reclamos', href: '#' },
+    { name: 'Privacidad', href: '#' },
+    { name: 'Términos', href: '#' },
   ],
   social: [
     {
@@ -179,7 +179,7 @@ export default function Home() {
               <pattern
                 x="50%"
                 y={-1}
-                id="983e3e4c-de6d-4c3f-8d64-b9761d1534cc"
+                id="bg-pattern"
                 width={200}
                 height={200}
                 patternUnits="userSpaceOnUse"
@@ -193,7 +193,7 @@ export default function Home() {
                 strokeWidth={0}
               />
             </svg>
-            <rect fill="url(#983e3e4c-de6d-4c3f-8d64-b9761d1534cc)" width="100%" height="100%" strokeWidth={0} />
+            <rect fill="url(#bg-pattern)" width="100%" height="100%" strokeWidth={0} />
           </svg>
           <div
             aria-hidden="true"
@@ -204,54 +204,57 @@ export default function Home() {
                 clipPath:
                   'polygon(73.6% 51.7%, 91.7% 11.8%, 100% 46.4%, 97.4% 82.2%, 92.5% 84.9%, 75.7% 64%, 55.3% 47.5%, 46.5% 49.4%, 45% 62.9%, 50.3% 87.2%, 21.3% 64.1%, 0.1% 100%, 5.4% 51.1%, 21.4% 63.9%, 58.9% 0.2%, 73.6% 51.7%)',
               }}
-              className="aspect-1108/632 w-277 bg-linear-to-r from-[#80caff] to-[#4f46e5] opacity-20"
+              className="aspect-1108/632 w-277 bg-gradient-to-r from-[#80caff] to-[#4f46e5] opacity-20"
             />
           </div>
           <div className="mx-auto max-w-7xl px-6 pt-10 pb-24 sm:pb-32 lg:flex lg:px-8 lg:py-40">
             <div className="mx-auto max-w-2xl shrink-0 lg:mx-0 lg:pt-8">
-              <img
-                alt="Your Company"
+              <Image
+                alt="Ivory"
                 src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
                 className="h-11"
+                width={44}
+                height={44}
+                priority
               />
               <div className="mt-24 sm:mt-32 lg:mt-16">
                 <a href="#" className="inline-flex space-x-6">
                   <span className="rounded-full bg-indigo-500/10 px-3 py-1 text-sm/6 font-semibold text-indigo-400 ring-1 ring-indigo-500/20 ring-inset">
-                    What's new
+                    SaaS para autodidactas y estudiantes
                   </span>
                   <span className="inline-flex items-center space-x-2 text-sm/6 font-medium text-gray-300">
-                    <span>Just shipped v1.0</span>
+                    <span>Impulsa tu aprendizaje y productividad</span>
                     <FiChevronRight aria-hidden="true" className="size-5 text-gray-500" />
                   </span>
                 </a>
               </div>
               <h1 className="mt-10 text-5xl font-semibold tracking-tight text-pretty text-white sm:text-7xl">
-                Deploy to the cloud with confidence
+                Organiza, aprende y crece con Ivory
               </h1>
               <p className="mt-8 text-lg font-medium text-pretty text-gray-400 sm:text-xl/8">
-                Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo. Elit sunt amet
-                fugiat veniam occaecat.
+                Ivory es la plataforma de productividad diseñada para autodidactas y estudiantes. Gestiona tus tareas, toma notas, sigue tus hábitos y alcanza tus metas de aprendizaje con herramientas intuitivas y potentes.
               </p>
               <div className="mt-10 flex items-center gap-x-6">
                 <a
                   href="#"
                   className="rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400"
                 >
-                  Get started
+                  Empieza gratis
                 </a>
                 <a href="#" className="text-sm/6 font-semibold text-white">
-                  Learn more <span aria-hidden="true">→</span>
+                  Saber más <span aria-hidden="true">→</span>
                 </a>
               </div>
             </div>
             <div className="mx-auto mt-16 flex max-w-2xl sm:mt-24 lg:mt-0 lg:mr-0 lg:ml-10 lg:max-w-none lg:flex-none xl:ml-32">
               <div className="max-w-3xl flex-none sm:max-w-5xl lg:max-w-none">
-                <img
+                <Image
                   alt="App screenshot"
                   src="https://tailwindcss.com/plus-assets/img/component-images/dark-project-app-screenshot.png"
                   width={2432}
                   height={1442}
                   className="w-304 rounded-md bg-white/5 shadow-2xl ring-1 ring-white/10"
+                  priority
                 />
               </div>
             </div>
@@ -261,38 +264,38 @@ export default function Home() {
         {/* Logo cloud */}
         <div className="mx-auto mt-8 max-w-7xl px-6 sm:mt-16 lg:px-8">
           <h2 className="text-center text-lg/8 font-semibold text-white">
-            The world’s most innovative companies use our app
+            Ya confían en Ivory estudiantes y autodidactas de todo el mundo
           </h2>
           <div className="mx-auto mt-10 grid max-w-lg grid-cols-4 items-center gap-x-8 gap-y-10 sm:max-w-xl sm:grid-cols-6 sm:gap-x-10 lg:mx-0 lg:max-w-none lg:grid-cols-5">
-            <img
+            <Image
               alt="Transistor"
               src="https://tailwindcss.com/plus-assets/img/logos/158x48/transistor-logo-white.svg"
               width={158}
               height={48}
               className="col-span-2 max-h-12 w-full object-contain lg:col-span-1"
             />
-            <img
+            <Image
               alt="Reform"
               src="https://tailwindcss.com/plus-assets/img/logos/158x48/reform-logo-white.svg"
               width={158}
               height={48}
               className="col-span-2 max-h-12 w-full object-contain lg:col-span-1"
             />
-            <img
+            <Image
               alt="Tuple"
               src="https://tailwindcss.com/plus-assets/img/logos/158x48/tuple-logo-white.svg"
               width={158}
               height={48}
               className="col-span-2 max-h-12 w-full object-contain lg:col-span-1"
             />
-            <img
+            <Image
               alt="SavvyCal"
               src="https://tailwindcss.com/plus-assets/img/logos/158x48/savvycal-logo-white.svg"
               width={158}
               height={48}
               className="col-span-2 max-h-12 w-full object-contain sm:col-start-2 lg:col-span-1"
             />
-            <img
+            <Image
               alt="Statamic"
               src="https://tailwindcss.com/plus-assets/img/logos/158x48/statamic-logo-white.svg"
               width={158}
@@ -305,13 +308,12 @@ export default function Home() {
         {/* Feature section */}
         <div className="mx-auto mt-32 max-w-7xl px-6 sm:mt-56 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center">
-            <h2 className="text-base/7 font-semibold text-indigo-400">Deploy faster</h2>
+            <h2 className="text-base/7 font-semibold text-indigo-400">Herramientas clave</h2>
             <p className="mt-2 text-4xl font-semibold tracking-tight text-pretty text-white sm:text-5xl lg:text-balance">
-              Everything you need to deploy your app
+              Todo lo que necesitas para potenciar tu aprendizaje
             </p>
             <p className="mt-6 text-lg/8 text-gray-300">
-              Quis tellus eget adipiscing convallis sit sit eget aliquet quis. Suspendisse eget egestas a elementum
-              pulvinar et feugiat blandit at. In mi viverra elit nunc.
+              Ivory reúne en un solo lugar gestión de tareas, notas, hábitos y recursos para que puedas enfocarte en aprender y crecer.
             </p>
           </div>
           <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
@@ -326,11 +328,6 @@ export default function Home() {
                   </dt>
                   <dd className="mt-1 flex flex-auto flex-col text-base/7 text-gray-300">
                     <p className="flex-auto">{feature.description}</p>
-                    <p className="mt-6">
-                      <a href={feature.href} className="text-sm/6 font-semibold text-indigo-400">
-                        Learn more <span aria-hidden="true">→</span>
-                      </a>
-                    </p>
                   </dd>
                 </div>
               ))}
@@ -342,27 +339,27 @@ export default function Home() {
         <div className="mt-32 sm:mt-56">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="mx-auto max-w-2xl sm:text-center">
-              <h2 className="text-base/7 font-semibold text-indigo-400">Everything you need</h2>
+              <h2 className="text-base/7 font-semibold text-indigo-400">Más funcionalidades</h2>
               <p className="mt-2 text-4xl font-semibold tracking-tight text-pretty text-white sm:text-5xl sm:text-balance">
-                No server? No problem.
+                Todo para tu productividad y organización personal
               </p>
               <p className="mt-6 text-lg/8 text-gray-300">
-                Lorem ipsum, dolor sit amet consectetur adipisicing elit. Maiores impedit perferendis suscipit eaque,
-                iste dolor cupiditate blanditiis.
+                Ivory te ayuda a mantenerte enfocado, organizado y motivado en tu camino de aprendizaje.
               </p>
             </div>
           </div>
           <div className="relative overflow-hidden pt-16">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
-              <img
+              <Image
                 alt="App screenshot"
                 src="https://tailwindcss.com/plus-assets/img/component-images/dark-project-app-screenshot.png"
                 width={2432}
                 height={1442}
                 className="mb-[-12%] rounded-xl shadow-2xl ring-1 ring-white/10"
+                priority
               />
               <div aria-hidden="true" className="relative">
-                <div className="absolute -inset-x-20 bottom-0 bg-linear-to-t from-gray-900 pt-[7%]" />
+                <div className="absolute -inset-x-20 bottom-0 bg-gradient-to-t from-gray-900 pt-[7%]" />
               </div>
             </div>
           </div>
@@ -384,13 +381,12 @@ export default function Home() {
         {/* Stats */}
         <div className="mx-auto mt-32 max-w-7xl px-6 sm:mt-56 lg:px-8">
           <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-xl">
-            <h2 className="text-base/8 font-semibold text-indigo-400">Our track record</h2>
+            <h2 className="text-base/8 font-semibold text-indigo-400">Nuestro impacto</h2>
             <p className="mt-2 text-4xl font-semibold tracking-tight text-pretty text-white sm:text-5xl">
-              Trusted by thousands of creators&nbsp;worldwide
+              Miles de estudiantes y autodidactas ya usan Ivory
             </p>
             <p className="mt-6 text-lg/8 text-gray-300">
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Maiores impedit perferendis suscipit eaque, iste
-              dolor cupiditate blanditiis.
+              Únete a una comunidad que prioriza el aprendizaje, la organización y el crecimiento personal.
             </p>
           </div>
           <dl className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-10 text-white sm:mt-20 sm:grid-cols-2 sm:gap-y-16 lg:mx-0 lg:max-w-none lg:grid-cols-4">
@@ -413,7 +409,7 @@ export default function Home() {
               <pattern
                 x="50%"
                 y={0}
-                id="1d4240dd-898f-445f-932d-e2872fd12de3"
+                id="cta-pattern"
                 width={200}
                 height={200}
                 patternUnits="userSpaceOnUse"
@@ -427,7 +423,7 @@ export default function Home() {
                 strokeWidth={0}
               />
             </svg>
-            <rect fill="url(#1d4240dd-898f-445f-932d-e2872fd12de3)" width="100%" height="100%" strokeWidth={0} />
+            <rect fill="url(#cta-pattern)" width="100%" height="100%" strokeWidth={0} />
           </svg>
           <div
             aria-hidden="true"
@@ -438,26 +434,25 @@ export default function Home() {
                 clipPath:
                   'polygon(73.6% 51.7%, 91.7% 11.8%, 100% 46.4%, 97.4% 82.2%, 92.5% 84.9%, 75.7% 64%, 55.3% 47.5%, 46.5% 49.4%, 45% 62.9%, 50.3% 87.2%, 21.3% 64.1%, 0.1% 100%, 5.4% 51.1%, 21.4% 63.9%, 58.9% 0.2%, 73.6% 51.7%)',
               }}
-              className="aspect-1108/632 w-277 flex-none bg-linear-to-r from-[#80caff] to-[#4f46e5] opacity-20"
+              className="aspect-1108/632 w-277 flex-none bg-gradient-to-r from-[#80caff] to-[#4f46e5] opacity-20"
             />
           </div>
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-4xl font-semibold tracking-tight text-balance text-white sm:text-5xl">
-              Boost your productivity. Start using our app today.
+              Da el siguiente paso en tu aprendizaje con Ivory
             </h2>
             <p className="mx-auto mt-6 max-w-xl text-lg/8 text-gray-300">
-              Incididunt sint fugiat pariatur cupidatat consectetur sit cillum anim id veniam aliqua proident excepteur
-              commodo do ea.
+              Empieza gratis y descubre cómo Ivory puede ayudarte a organizarte, aprender más y alcanzar tus objetivos.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <a
                 href="#"
                 className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-xs hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
-                Get started
+                Empieza gratis
               </a>
               <a href="#" className="text-sm/6 font-semibold text-white">
-                Learn more <span aria-hidden="true">→</span>
+                Saber más <span aria-hidden="true">→</span>
               </a>
             </div>
           </div>
@@ -476,7 +471,7 @@ export default function Home() {
             ))}
           </div>
           <p className="mt-8 text-center text-sm/6 text-gray-400 md:order-1 md:mt-0">
-            &copy; 2024 Your Company, Inc. All rights reserved.
+            &copy; 2024 Ivory. Todos los derechos reservados.
           </p>
         </div>
       </footer>
