@@ -1,5 +1,5 @@
 "use client";
-import { Auth } from "aws-amplify";
+import Auth from "@aws-amplify/auth";
 import { useState } from "react";
 
 export default function LoginPage() {
@@ -11,7 +11,7 @@ export default function LoginPage() {
         e.preventDefault();
         setError("");
         try {
-            await Auth.signIn(email, password);
+            await Auth.signIn({ username: email, password });
             // Redirige al home o dashboard
             window.location.href = "/";
         } catch (err: any) {
