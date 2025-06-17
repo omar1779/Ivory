@@ -2,6 +2,7 @@
 import { confirmSignUp, resendSignUpCode } from "@aws-amplify/auth";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function ConfirmPage() {
   const [email, setEmail] = useState("");
@@ -21,22 +22,26 @@ export default function ConfirmPage() {
       setTimeout(() => {
         router.push("/login");
       }, 2000); // Espera 2 segundos antes de redirigir
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage =
+        typeof err === "object" && err !== null && "message" in err
+          ? String((err as { message?: string }).message)
+          : "";
       if (
-        err.message?.includes("Current status is CONFIRMED") ||
-        err.message?.includes("User cannot be confirmed")
+        errorMessage.includes("Current status is CONFIRMED") ||
+        errorMessage.includes("User cannot be confirmed")
       ) {
         setError("Este usuario ya está confirmado. Redirigiendo al inicio de sesión...");
         setTimeout(() => {
           router.push("/login");
         }, 2000);
       } else if (
-        err.message?.includes("Invalid code provided") ||
-        err.message?.includes("Código inválido")
+        errorMessage.includes("Invalid code provided") ||
+        errorMessage.includes("Código inválido")
       ) {
         setError("El código ingresado no es válido. Por favor, solicita un nuevo código e inténtalo de nuevo.");
       } else {
-        setError(err.message || "Error al confirmar usuario");
+        setError(errorMessage || "Error al confirmar usuario");
       }
     }
   };
@@ -49,8 +54,12 @@ export default function ConfirmPage() {
       await resendSignUpCode({ username: email });
       setResent(true);
       setSuccess("Código reenviado. Revisa tu correo.");
-    } catch (err: any) {
-      setError(err.message || "Error al reenviar código");
+    } catch (err: unknown) {
+      const errorMessage =
+        typeof err === "object" && err !== null && "message" in err
+          ? String((err as { message?: string }).message)
+          : "";
+      setError(errorMessage || "Error al reenviar código");
     }
   };
 
@@ -58,7 +67,7 @@ export default function ConfirmPage() {
     <>
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-gray-900">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <img
+          <Image
             alt="Tu empresa"
             src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
             className="mx-auto h-10 w-auto"

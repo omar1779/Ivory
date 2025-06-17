@@ -2,6 +2,16 @@
 import { signIn } from "@aws-amplify/auth";
 import { useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+
+function isAmplifyError(err: unknown): err is { message: string; name?: string } {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "message" in err &&
+    typeof (err as Record<string, unknown>).message === "string"
+  );
+}
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -15,32 +25,37 @@ export default function Login() {
     try {
       await signIn({ username: email, password });
       router.push("/");
-    } catch (err: any) {
-      if (
-        err.message?.includes("User is not confirmed") ||
-        err.message?.includes("Usuario no está confirmado")
-      ) {
-        setError(
-          <>
-            Tu cuenta no está confirmada.{" "}
-            <a href="/confirm" className="underline text-indigo-400 hover:text-indigo-300">
-              Confirma tu cuenta aquí
-            </a>
-            .
-          </>
-        );
-      } else if (
-        err.message?.includes("Incorrect username or password") ||
-        err.message?.includes("contraseña incorrecta")
-      ) {
-        setError("Correo o contraseña incorrectos.");
-      } else if (
-        err.message?.includes("User does not exist") ||
-        err.message?.includes("usuario no existe")
-      ) {
-        setError("El usuario no existe. ¿Deseas registrarte?");
+    } catch (err: unknown) {
+      if (isAmplifyError(err)) {
+        const msg = err.message;
+        if (
+          msg.includes("User is not confirmed") ||
+          msg.includes("Usuario no está confirmado")
+        ) {
+          setError(
+            <>
+              Tu cuenta no está confirmada.{" "}
+              <a href="/confirm" className="underline text-indigo-400 hover:text-indigo-300">
+                Confirma tu cuenta aquí
+              </a>
+              .
+            </>
+          );
+        } else if (
+          msg.includes("Incorrect username or password") ||
+          msg.includes("contraseña incorrecta")
+        ) {
+          setError("Correo o contraseña incorrectos.");
+        } else if (
+          msg.includes("User does not exist") ||
+          msg.includes("usuario no existe")
+        ) {
+          setError("El usuario no existe. ¿Deseas registrarte?");
+        } else {
+          setError(msg || "Error al iniciar sesión");
+        }
       } else {
-        setError(err.message || "Error al iniciar sesión");
+        setError("Error al iniciar sesión");
       }
     }
   };
@@ -49,7 +64,7 @@ export default function Login() {
     <>
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-gray-900">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <img
+          <Image
             alt="Tu empresa"
             src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
             className="mx-auto h-10 w-auto"

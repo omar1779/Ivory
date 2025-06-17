@@ -1,7 +1,7 @@
 "use client";
 import { signUp, confirmSignUp } from "@aws-amplify/auth";
 import { useState } from "react";
-
+import Image from "next/image";
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,26 +22,30 @@ export default function Register() {
       });
       setShowConfirm(true);
       setSuccess("Usuario registrado. Revisa tu correo para confirmar la cuenta.");
-    } catch (err: any) {
-      // Mensajes personalizados en español
-      if (err.message?.includes("uppercase")) {
-        setError("La contraseña debe contener al menos una letra mayúscula.");
-      } else if (err.message?.includes("lowercase")) {
-        setError("La contraseña debe contener al menos una letra minúscula.");
-      } else if (
-        err.message?.includes("must have numeric characters") ||
-        err.message?.includes("number")
-      ) {
-        setError("La contraseña debe contener al menos un número.");
-      } else if (err.message?.includes("symbol")) {
-        setError("La contraseña debe contener al menos un símbolo.");
-      } else if (err.message?.includes("not long enough")) {
-        setError("La contraseña es demasiado corta. Debe tener al menos 8 caracteres.");
-      } else if (err.name === "UsernameExistsException") {
+    } catch (err: unknown) {
+      if (isAmplifyError(err)) {
+        const msg = err.message;
+        if (msg.includes("uppercase")) {
+          setError("La contraseña debe contener al menos una letra mayúscula.");
+        } else if (msg.includes("lowercase")) {
+          setError("La contraseña debe contener al menos una letra minúscula.");
+        } else if (msg.includes("must have numeric characters") || msg.includes("number")) {
+          setError("La contraseña debe contener al menos un número.");
+        } else if (msg.includes("symbol")) {
+          setError("La contraseña debe contener al menos un símbolo.");
+        } else if (msg.includes("not long enough")) {
+          setError("La contraseña es demasiado corta. Debe tener al menos 8 caracteres.");
+        } else if (isUsernameExistsError(err)) {
+          setError("El usuario ya existe. ¿Necesitas confirmar tu cuenta?");
+          setShowConfirm(true);
+        } else {
+          setError(msg || "Error al registrar usuario");
+        }
+      } else if (isUsernameExistsError(err)) {
         setError("El usuario ya existe. ¿Necesitas confirmar tu cuenta?");
         setShowConfirm(true);
       } else {
-        setError(err.message || "Error al registrar usuario");
+        setError("Error al registrar usuario");
       }
     }
   };
@@ -53,14 +57,16 @@ export default function Register() {
     try {
       await confirmSignUp({ username: email, confirmationCode: code });
       setSuccess("¡Cuenta confirmada! Ya puedes iniciar sesión.");
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (
-        err.message?.includes("Invalid code provided") ||
-        err.message?.includes("Código inválido")
+        isAmplifyError(err) &&
+        (err.message.includes("Invalid code provided") || err.message.includes("Código inválido"))
       ) {
         setError("El código ingresado no es válido. Por favor, solicita un nuevo código e inténtalo de nuevo.");
-      } else {
+      } else if (isAmplifyError(err)) {
         setError(err.message || "Error al confirmar usuario");
+      } else {
+        setError("Error al confirmar usuario");
       }
       setSuccess(""); // Borra el mensaje de éxito si hay error
     }
@@ -70,7 +76,7 @@ export default function Register() {
     <>
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-gray-900">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <img
+          <Image
             alt="Tu empresa"
             src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
             className="mx-auto h-10 w-auto"
@@ -176,5 +182,23 @@ export default function Register() {
         </div>
       </div>
     </>
+  );
+}
+
+function isAmplifyError(err: unknown): err is { message: string } {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "message" in err &&
+    typeof (err as Record<string, unknown>).message === "string"
+  );
+}
+
+function isUsernameExistsError(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "name" in err &&
+    (err as Record<string, unknown>).name === "UsernameExistsException"
   );
 }
