@@ -8,6 +8,7 @@ import {
 } from "react-icons/fi";
 import { FaBolt, FaTasks, FaRegStickyNote, FaChartLine } from "react-icons/fa";
 import { FiChevronRight } from "react-icons/fi";
+import Link from "next/link";
 
 const primaryFeatures = [
   {
@@ -233,15 +234,18 @@ export default function Home() {
                 Ivory es la plataforma de productividad diseñada para autodidactas y estudiantes. Gestiona tus tareas, toma notas, sigue tus hábitos y alcanza tus metas de aprendizaje con herramientas intuitivas y potentes.
               </p>
               <div className="mt-10 flex items-center gap-x-6">
-                <a
-                  href="#"
+                <Link
+                  href="/register"
                   className="rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400"
                 >
-                  Empieza gratis
-                </a>
-                <a href="#" className="text-sm/6 font-semibold text-white">
-                  Saber más <span aria-hidden="true">→</span>
-                </a>
+                  Registrarse
+                </Link>
+                <Link
+                  href="/login"
+                  className="rounded-md bg-gray-700 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-gray-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
+                >
+                  Iniciar sesión
+                </Link>
               </div>
             </div>
             <div className="mx-auto mt-16 flex max-w-2xl sm:mt-24 lg:mt-0 lg:mr-0 lg:ml-10 lg:max-w-none lg:flex-none xl:ml-32">
