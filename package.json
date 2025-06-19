@@ -10,7 +10,11 @@
   },
   "dependencies": {
     "@aws-amplify/auth": "^6.13.0",
+    "@headlessui/react": "^2.2.4",
+    "@hello-pangea/dnd": "^18.0.1",
+    "@heroicons/react": "^2.2.0",
     "aws-amplify": "^6.15.0",
+    "date-fns": "^4.1.0",
     "next": "15.3.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -1,8 +1,5 @@
 {
   "auth": {
-    "userPoolId": "us-east-2_eocu0lZZ4",
-    "userPoolClientId": "4n2kv8koi6h9ie0cej55tghflv",
-    "region": "us-east-2",
     "user_pool_id": "us-east-2_eocu0lZZ4",
     "aws_region": "us-east-2",
     "user_pool_client_id": "4n2kv8koi6h9ie0cej55tghflv",
@@ -31,15 +28,15 @@
   "data": {
     "url": "https://aw6rkrooyfcozgclgcjqyalocy.appsync-api.us-east-2.amazonaws.com/graphql",
     "aws_region": "us-east-2",
-    "default_authorization_type": "AWS_IAM",
+    "default_authorization_type": "AMAZON_COGNITO_USER_POOLS",
     "authorization_types": [
-      "AMAZON_COGNITO_USER_POOLS"
+      "AWS_IAM"
     ],
     "model_introspection": {
       "version": 1,
       "models": {
-        "Todo": {
-          "name": "Todo",
+        "Project": {
+          "name": "Project",
           "fields": {
             "id": {
               "name": "id",
@@ -48,8 +45,22 @@
               "isRequired": true,
               "attributes": []
             },
-            "content": {
-              "name": "content",
+            "name": {
+              "name": "name",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "description": {
+              "name": "description",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "color": {
+              "name": "color",
               "isArray": false,
               "type": "String",
               "isRequired": false,
@@ -60,20 +71,34 @@
               "isArray": false,
               "type": "AWSDateTime",
               "isRequired": false,
-              "attributes": [],
-              "isReadOnly": true
+              "attributes": []
             },
             "updatedAt": {
               "name": "updatedAt",
               "isArray": false,
               "type": "AWSDateTime",
               "isRequired": false,
+              "attributes": []
+            },
+            "tasks": {
+              "name": "tasks",
+              "isArray": true,
+              "type": {
+                "model": "Task"
+              },
+              "isRequired": false,
               "attributes": [],
-              "isReadOnly": true
+              "isArrayNullable": true,
+              "association": {
+                "connectionType": "HAS_MANY",
+                "associatedWith": [
+                  "projectId"
+                ]
+              }
             }
           },
           "syncable": true,
-          "pluralName": "Todos",
+          "pluralName": "Projects",
           "attributes": [
             {
               "type": "model",
@@ -84,8 +109,158 @@
               "properties": {
                 "rules": [
                   {
-                    "allow": "public",
-                    "provider": "iam",
+                    "provider": "userPools",
+                    "ownerField": "owner",
+                    "allow": "owner",
+                    "identityClaim": "cognito:username",
+                    "operations": [
+                      "create",
+                      "update",
+                      "delete",
+                      "read"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "primaryKeyInfo": {
+            "isCustomPrimaryKey": false,
+            "primaryKeyFieldName": "id",
+            "sortKeyFieldNames": []
+          }
+        },
+        "Task": {
+          "name": "Task",
+          "fields": {
+            "id": {
+              "name": "id",
+              "isArray": false,
+              "type": "ID",
+              "isRequired": true,
+              "attributes": []
+            },
+            "title": {
+              "name": "title",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "description": {
+              "name": "description",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "status": {
+              "name": "status",
+              "isArray": false,
+              "type": {
+                "enum": "TaskStatus"
+              },
+              "isRequired": false,
+              "attributes": []
+            },
+            "priority": {
+              "name": "priority",
+              "isArray": false,
+              "type": {
+                "enum": "TaskPriority"
+              },
+              "isRequired": false,
+              "attributes": []
+            },
+            "dueDate": {
+              "name": "dueDate",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": []
+            },
+            "projectId": {
+              "name": "projectId",
+              "isArray": false,
+              "type": "ID",
+              "isRequired": false,
+              "attributes": []
+            },
+            "project": {
+              "name": "project",
+              "isArray": false,
+              "type": {
+                "model": "Project"
+              },
+              "isRequired": false,
+              "attributes": [],
+              "association": {
+                "connectionType": "BELONGS_TO",
+                "targetNames": [
+                  "projectId"
+                ]
+              }
+            },
+            "assignedTo": {
+              "name": "assignedTo",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "tags": {
+              "name": "tags",
+              "isArray": true,
+              "type": "String",
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true
+            },
+            "estimatedHours": {
+              "name": "estimatedHours",
+              "isArray": false,
+              "type": "Float",
+              "isRequired": false,
+              "attributes": []
+            },
+            "actualHours": {
+              "name": "actualHours",
+              "isArray": false,
+              "type": "Float",
+              "isRequired": false,
+              "attributes": []
+            },
+            "createdAt": {
+              "name": "createdAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": []
+            },
+            "updatedAt": {
+              "name": "updatedAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": []
+            }
+          },
+          "syncable": true,
+          "pluralName": "Tasks",
+          "attributes": [
+            {
+              "type": "model",
+              "properties": {}
+            },
+            {
+              "type": "auth",
+              "properties": {
+                "rules": [
+                  {
+                    "provider": "userPools",
+                    "ownerField": "owner",
+                    "allow": "owner",
+                    "identityClaim": "cognito:username",
                     "operations": [
                       "create",
                       "update",
@@ -104,7 +279,26 @@
           }
         }
       },
-      "enums": {},
+      "enums": {
+        "TaskStatus": {
+          "name": "TaskStatus",
+          "values": [
+            "TODO",
+            "IN_PROGRESS",
+            "REVIEW",
+            "DONE"
+          ]
+        },
+        "TaskPriority": {
+          "name": "TaskPriority",
+          "values": [
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "URGENT"
+          ]
+        }
+      },
       "nonModels": {}
     }
   },

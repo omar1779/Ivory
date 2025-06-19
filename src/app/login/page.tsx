@@ -51,6 +51,12 @@ export default function Login() {
           msg.includes("usuario no existe")
         ) {
           setError("El usuario no existe. ¿Deseas registrarte?");
+        } else if (
+          msg.includes("already a signed in user") ||
+          msg.includes("There is already a signed in user")
+        ) {
+          setError("Ya tienes una sesión activa.");
+          router.push("/");
         } else {
           setError(msg || "Error al iniciar sesión");
         }
@@ -67,6 +73,8 @@ export default function Login() {
           <Image
             alt="Tu empresa"
             src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
+            width={40}
+            height={40} 
             className="mx-auto h-10 w-auto"
           />
           <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-white">
