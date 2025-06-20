@@ -69,6 +69,7 @@ export default function Header() {
         const user = await getCurrentUser();
         setUserEmail(user.signInDetails?.loginId ?? null);
       } catch (error) {
+        console.error("Error al obtener el usuario:", error);
         // Usuario no autenticado - esto es normal
         setUserEmail(null);
       } finally {
