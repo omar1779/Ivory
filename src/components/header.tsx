@@ -1,9 +1,9 @@
 "use client";
 
 import { getCurrentUser, signOut } from "@aws-amplify/auth";
-import { Amplify } from "aws-amplify";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAmplify } from "@/provider/AmplifyProvider";
 import Image from "next/image";
 import { FiMenu, FiX, FiCheckSquare, FiClipboard, FiTrendingUp, FiLink, FiActivity, FiCalendar, FiLogIn, FiInfo } from "react-icons/fi";
 import { FaChevronDown } from "react-icons/fa";
@@ -54,54 +54,39 @@ const accionesRapidas = [
   { name: "Ayuda", href: "/ayuda", icon: FiInfo },
 ];
 
-// Verifica si Amplify ya está configurado
-const isAmplifyConfigured = () => {
-  try {
-    const config = Amplify.getConfig();
-    return Boolean(config.Auth?.Cognito);
-  } catch (error) {
-    console.error("Error al verificar configuración de Amplify:", error);
-    return false;
-  }
-};
-
 export default function Header() {
+  const { initialized } = useAmplify();
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      const checkUser = async () => {
-        try {
-          if (!isAmplifyConfigured()) {
-            console.error("Amplify no está configurado");
-            setLoading(false);
-            setUserEmail(null);
-            return;
-          }
+    if (!initialized) return;
 
-          const user = await getCurrentUser();
-          setUserEmail(user.signInDetails?.loginId ?? null);
-        } catch (error) {
-          console.error("Error al obtener usuario:", error);
-          setUserEmail(null);
-        } finally {
-          setLoading(false);
-        }
-      };
+    const checkUser = async () => {
+      try {
+        const user = await getCurrentUser();
+        setUserEmail(user.signInDetails?.loginId ?? null);
+      } catch (error) {
+        // Usuario no autenticado - esto es normal
+        setUserEmail(null);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      checkUser();
-    }, 500);
-
-    return () => clearTimeout(timeout);
-  }, []);
+    checkUser();
+  }, [initialized]);
 
   const handleLogout = async () => {
-    await signOut();
-    setUserEmail(null);
-    router.push("/login");
+    try {
+      await signOut();
+      setUserEmail(null);
+      router.push("/");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
   };
 
   return (
@@ -115,6 +100,7 @@ export default function Header() {
               width={32}
               height={32}
               className="h-8 w-auto"
+              priority
             />
             <span className="text-white text-lg font-bold">Ivory</span>
           </Link>
@@ -198,7 +184,7 @@ export default function Header() {
               </button>
             </div>
           </>
-        ) : (
+        ) : !loading ? (
           <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-x-6">
             <Link href="/login" className="text-sm font-semibold text-indigo-400 hover:text-indigo-300">
               Iniciar sesión
@@ -210,7 +196,7 @@ export default function Header() {
               Registrarse
             </Link>
           </div>
-        )}
+        ) : null}
       </nav>
       
       {/* Menú móvil */}

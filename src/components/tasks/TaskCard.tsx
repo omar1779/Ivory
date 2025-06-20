@@ -37,12 +37,15 @@ export default function TaskCard({ task, onEdit, onDelete, isDragging = false }:
 
   return (
     <div 
-      className={`bg-white/5 border border-white/10 rounded-lg p-4 backdrop-blur-sm cursor-grab active:cursor-grabbing ${
-        isDragging 
-          ? 'shadow-2xl bg-white/10 border-white/30 scale-105' 
-          : 'hover:bg-white/10 hover:border-white/20'
-      }`}
+      className={`
+        bg-white/5 border border-white/10 rounded-lg p-4 backdrop-blur-sm
+        ${isDragging 
+          ? 'shadow-2xl bg-white/20 border-white/40 scale-105 rotate-2' 
+          : 'hover:bg-white/10 hover:border-white/20 cursor-grab active:cursor-grabbing'
+        }
+      `}
       style={{
+        // Dejar que @hello-pangea/dnd maneje completamente las transformaciones
         transition: isDragging ? 'none' : 'all 0.2s ease',
       }}
     >
@@ -79,7 +82,6 @@ export default function TaskCard({ task, onEdit, onDelete, isDragging = false }:
       )}
 
       <div className="space-y-2">
-        {/* Prioridad */}
         <div className="flex justify-between items-center">
           <span 
             className={`px-2 py-1 rounded-full text-xs font-medium ring-1 ${
@@ -97,7 +99,6 @@ export default function TaskCard({ task, onEdit, onDelete, isDragging = false }:
           )}
         </div>
 
-        {/* Fecha límite */}
         {task.dueDate && (
           <div className={`flex items-center gap-1 text-xs ${
             isOverdue ? 'text-red-400' : 'text-gray-400'
@@ -110,7 +111,6 @@ export default function TaskCard({ task, onEdit, onDelete, isDragging = false }:
           </div>
         )}
 
-        {/* Tags */}
         {task.tags && task.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {task.tags.slice(0, 3).map((tag: string, index: number) => (

@@ -14,49 +14,52 @@ interface TaskBoardProps {
 }
 
 const COLUMNS = [
-  { 
-    id: TaskStatus.TODO, 
-    title: 'Por hacer', 
+  {
+    id: TaskStatus.TODO,
+    title: 'Por hacer',
     color: 'bg-gray-800/30',
     headerColor: 'bg-gray-700/50',
-    textColor: 'text-gray-300'
+    textColor: 'text-gray-300',
+    badgeColor: 'bg-gray-700'
   },
-  { 
-    id: TaskStatus.IN_PROGRESS, 
-    title: 'En progreso', 
+  {
+    id: TaskStatus.IN_PROGRESS,
+    title: 'En progreso',
     color: 'bg-blue-900/20',
-    headerColor: 'bg-blue-800/50',
-    textColor: 'text-blue-300'
+    headerColor: 'bg-blue-800/40',
+    textColor: 'text-blue-300',
+    badgeColor: 'bg-blue-700'
   },
-  { 
-    id: TaskStatus.REVIEW, 
-    title: 'En revisión', 
+  {
+    id: TaskStatus.REVIEW,
+    title: 'En revisión',
     color: 'bg-yellow-900/20',
-    headerColor: 'bg-yellow-800/50',
-    textColor: 'text-yellow-300'
+    headerColor: 'bg-yellow-800/40',
+    textColor: 'text-yellow-300',
+    badgeColor: 'bg-yellow-700'
   },
-  { 
-    id: TaskStatus.DONE, 
-    title: 'Completado', 
+  {
+    id: TaskStatus.DONE,
+    title: 'Completado',
     color: 'bg-green-900/20',
-    headerColor: 'bg-green-800/50',
-    textColor: 'text-green-300'
+    headerColor: 'bg-green-800/40',
+    textColor: 'text-green-300',
+    badgeColor: 'bg-green-700'
   },
 ];
 
-export default function TaskBoard({ 
-  tasks, 
-  onUpdateStatus, 
-  onCreateTask, 
-  onEditTask, 
-  onDeleteTask 
+export default function TaskBoard({
+  tasks,
+  onUpdateStatus,
+  onCreateTask,
+  onEditTask,
+  onDeleteTask
 }: TaskBoardProps) {
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
     const { draggableId, destination, source } = result;
-    
-    // Si se mueve a la misma posición, no hacer nada
+
     if (destination.droppableId === source.droppableId && destination.index === source.index) {
       return;
     }
@@ -71,13 +74,16 @@ export default function TaskBoard({
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-6 pb-6 mx-auto">
         {COLUMNS.map(column => (
-          <div key={column.id} className="bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm overflow-hidden">
-            <div className={`${column.headerColor} p-4 border-b border-white/10`}>
+          <div
+            key={column.id}
+            className="bg-white/5 rounded-lg border border-white/10 flex flex-col shadow-lg overflow-hidden"
+          >
+            <div className={`${column.headerColor} py-3 px-3 border-b border-white/10 rounded-t-lg`}>
               <div className="flex justify-between items-center">
-                <h3 className={`font-semibold ${column.textColor}`}>{column.title}</h3>
-                <span className="bg-white/10 px-2 py-1 rounded-full text-xs font-medium text-gray-300 ring-1 ring-white/20">
+                <h3 className={`font-medium text-sm ${column.textColor}`}>{column.title}</h3>
+                <span className={`${column.badgeColor} px-2 py-0.5 rounded-full text-xs font-medium text-white/90 shadow-inner`}>
                   {getTasksByStatus(column.id).length}
                 </span>
               </div>
@@ -88,12 +94,8 @@ export default function TaskBoard({
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className={`p-4 min-h-[300px] ${
-                    snapshot.isDraggingOver ? column.color : ''
-                  }`}
-                  style={{
-                    transition: snapshot.isDraggingOver ? 'none' : 'background-color 0.2s ease',
-                  }}
+                  className={`p-3 min-h-[350px] flex-1 transition-colors duration-200 ${snapshot.isDraggingOver ? column.color : ''
+                    } overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent`}
                 >
                   {getTasksByStatus(column.id).map((task, index) => (
                     <Draggable key={task.id} draggableId={task.id} index={index}>
@@ -103,12 +105,7 @@ export default function TaskBoard({
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                           className="mb-3"
-                          style={{
-                            ...provided.draggableProps.style,
-                            transform: snapshot.isDragging 
-                              ? `${provided.draggableProps.style?.transform} rotate(5deg)` 
-                              : provided.draggableProps.style?.transform,
-                          }}
+                          style={provided.draggableProps.style}
                         >
                           <TaskCard
                             task={task}
@@ -124,10 +121,10 @@ export default function TaskBoard({
 
                   <button
                     onClick={() => onCreateTask(column.id)}
-                    className="w-full p-3 border-2 border-dashed border-white/20 rounded-lg text-gray-400 hover:border-white/40 hover:text-gray-300 hover:bg-white/5 transition-all flex items-center justify-center gap-2"
+                    className="w-full py-2 px-2 border border-dashed border-white/20 rounded-md text-gray-400 hover:border-white/30 hover:text-gray-300 hover:bg-white/5 transition-all flex items-center justify-center gap-1.5 mt-2 text-xs"
                   >
-                    <PlusIcon className="w-4 h-4" />
-                    <span className="text-sm">Agregar tarea</span>
+                    <PlusIcon className="w-3 h-3" />
+                    <span>Agregar tarea</span>
                   </button>
                 </div>
               )}

@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
 import { Amplify } from "aws-amplify";
-import config from "../../../amplify_outputs.json";
+import config from "../../amplify_outputs.json";
 
 type AmplifyContextType = {
   initialized: boolean;

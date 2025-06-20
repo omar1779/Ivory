@@ -1,37 +1,54 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useTasks } from "@/lib/hooks/useTasks";
 import { TaskStatus, TaskPriority, Task, AmplifyTask } from "@/lib/types/task";
-import TaskBoard from "@/components/tasks/TaskBoard";
-import NewTaskModal from "@/components/tasks/NewTaskModal";
-import EditTaskModal from "@/components/tasks/EditTaskModal";
+import dynamic from "next/dynamic";
 import { PlusIcon } from "@heroicons/react/24/outline";
 
+// Lazy loading de componentes pesados
+const TaskBoard = dynamic(() => import("@/components/tasks/TaskBoard"), {
+  loading: () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-6">
+      {[...Array(4)].map((_, i) => (
+        <div key={i} className="bg-white/5 rounded-lg border border-white/10 p-4 animate-pulse">
+          <div className="h-8 bg-gray-700 rounded mb-4"></div>
+          <div className="space-y-3">
+            <div className="h-20 bg-gray-700 rounded"></div>
+            <div className="h-20 bg-gray-700 rounded"></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+});
+
+const NewTaskModal = dynamic(() => import("@/components/tasks/NewTaskModal"));
+const EditTaskModal = dynamic(() => import("@/components/tasks/EditTaskModal"));
+
 export default function TasksPage() {
-  const { tasks, loading, createTask, updateTaskStatus, updateTask, deleteTask, error } = useTasks();
+  const { tasks, loading, createTask, updateTaskStatus, updateTask, deleteTask, error, initialized } = useTasks();
   const [showNewTaskModal, setShowNewTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [newTaskStatus, setNewTaskStatus] = useState<TaskStatus>(TaskStatus.TODO);
 
-  const handleCreateTask = (status: TaskStatus) => {
+  const handleCreateTask = useCallback((status: TaskStatus) => {
     setNewTaskStatus(status);
     setShowNewTaskModal(true);
-  };
+  }, []);
 
-  const handleEditTask = (task: Task) => {
+  const handleEditTask = useCallback((task: Task) => {
     setEditingTask(task);
-  };
+  }, []);
 
-  const handleDeleteTask = async (taskId: string) => {
+  const handleDeleteTask = useCallback(async (taskId: string) => {
     if (confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
       await deleteTask(taskId);
     }
-  };
+  }, [deleteTask]);
 
-  // Función para normalizar las tareas de Amplify con tipos correctos
-  const normalizeTask = (amplifyTask: AmplifyTask): Task => {
-    // Función auxiliar para filtrar strings válidos de arrays nullable
+  // Memoizar la función de normalización
+  const normalizeTask = useCallback((amplifyTask: AmplifyTask): Task => {
     const filterValidStrings = (arr: (string | null)[] | null | undefined): string[] => {
       if (!arr) return [];
       return arr.filter((item): item is string => typeof item === 'string' && item !== null);
@@ -53,27 +70,61 @@ export default function TasksPage() {
       updatedAt: amplifyTask.updatedAt,
       owner: amplifyTask.owner ?? undefined,
     };
-  };
+  }, []);
 
-  if (loading) {
+  // Memoizar las tareas normalizadas
+  const normalizedTasks = useMemo(() => 
+    tasks.map(normalizeTask), 
+    [tasks, normalizeTask]
+  );
+
+  const handleCreateTaskSubmit = useCallback(async (taskData: {
+    title: string;
+    description?: string;
+    priority: TaskPriority;
+    dueDate?: Date;
+    tags?: string[];
+  }) => {
+    await createTask({ ...taskData, status: newTaskStatus });
+    setShowNewTaskModal(false);
+  }, [createTask, newTaskStatus]);
+
+  const handleUpdateTask = useCallback(async (updates: {
+    title?: string;
+    description?: string;
+    priority?: TaskPriority;
+    dueDate?: Date;
+    tags?: string[];
+  }) => {
+    if (!editingTask) return;
+    
+    const amplifyUpdates = {
+      ...updates,
+      dueDate: updates.dueDate?.toISOString(),
+    };
+    await updateTask(editingTask.id, amplifyUpdates);
+    setEditingTask(null);
+  }, [editingTask, updateTask]);
+
+  // Mostrar loading si Amplify no está inicializado
+  if (!initialized || loading) {
     return (
-      <div className="min-h-screen bg-gray-900">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex justify-center my-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-gray-900 flex flex-col justify-center items-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500 mb-4"></div>
+        <p className="text-gray-400">
+          {!initialized ? 'Configurando aplicación...' : 'Cargando tareas...'}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      <div className="container mx-auto px-6 py-8">
+    <main className="min-h-screen bg-gray-900 sm:px-5 md:px-10 lg:px-20 xl:px-32 2xl:px-40">
+      <div className="px-6 py-8">
         {error && (
           <div className="mb-6 bg-red-500/10 border border-red-500/20 text-red-300 px-4 py-3 rounded-lg ring-1 ring-red-500/20">
             <p>Error: {error}</p>
-            <button 
+            <button
               onClick={() => window.location.reload()} 
               className="mt-2 bg-red-500 hover:bg-red-400 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
             >
@@ -104,54 +155,35 @@ export default function TasksPage() {
         <div className="mb-6 text-sm text-gray-400">
           Total de tareas: <span className="text-white font-medium">{tasks.length}</span>
         </div>
+      </div>
 
-        <TaskBoard
-          tasks={tasks.map(normalizeTask)}
-          onUpdateStatus={updateTaskStatus}
-          onCreateTask={handleCreateTask}
-          onEditTask={handleEditTask}
-          onDeleteTask={handleDeleteTask}
-        />
+      {/* TaskBoard */}
+      <TaskBoard
+        tasks={normalizedTasks}
+        onUpdateStatus={updateTaskStatus}
+        onCreateTask={handleCreateTask}
+        onEditTask={handleEditTask}
+        onDeleteTask={handleDeleteTask}
+      />
 
+      {/* Modals */}
+      {showNewTaskModal && (
         <NewTaskModal
           open={showNewTaskModal}
           onClose={() => setShowNewTaskModal(false)}
-          onCreate={async (taskData: {
-            title: string;
-            description?: string;
-            priority: TaskPriority;
-            dueDate?: Date;
-            tags?: string[];
-          }) => {
-            await createTask({ ...taskData, status: newTaskStatus });
-            setShowNewTaskModal(false);
-          }}
+          onCreate={handleCreateTaskSubmit}
           defaultStatus={newTaskStatus}
         />
+      )}
 
-        {editingTask && (
-          <EditTaskModal
-            open={!!editingTask}
-            task={editingTask}
-            onClose={() => setEditingTask(null)}
-            onUpdate={async (updates: {
-              title?: string;
-              description?: string;
-              priority?: TaskPriority;
-              dueDate?: Date;
-              tags?: string[];
-            }) => {
-              // Convertir Date a string para Amplify
-              const amplifyUpdates = {
-                ...updates,
-                dueDate: updates.dueDate?.toISOString(),
-              };
-              await updateTask(editingTask.id, amplifyUpdates);
-              setEditingTask(null);
-            }}
-          />
-        )}
-      </div>
-    </div>
+      {editingTask && (
+        <EditTaskModal
+          open={!!editingTask}
+          task={editingTask}
+          onClose={() => setEditingTask(null)}
+          onUpdate={handleUpdateTask}
+        />
+      )}
+    </main>
   );
 }

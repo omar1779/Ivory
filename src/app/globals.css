@@ -5,7 +5,7 @@
   --foreground: #171717;
 }
 
-@theme inline {
+:root {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -21,6 +21,14 @@
 
 html, body {
   height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Base styles */
+body, html {
+  margin: 0;
+  padding: 0;
 }
 
 body {
@@ -28,3 +36,33 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Box sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Drag and drop specific styles */
+/* Important: Do not add position or transform rules to elements that might interfere with DnD */
+
+/* Reset any transform on drag handle elements that aren't controlled by DnD */
+[data-rbd-drag-handle-context-id] {
+  touch-action: none;
+}
+
+/* Ensure drag layer has appropriate stacking context */
+[data-rbd-drag-handle-draggable-id] {
+  will-change: transform;
+}
+
+/* Let DnD library handle positioning of dragging elements */
+body [data-rbd-drag-handle-draggable-id][data-rbd-draggable-context-id] {
+  margin: 0; /* Prevent margin from causing offsets */
+}
+
+/* Prevent any transform scaling from parent containers */
+div[data-rbd-droppable-id] {
+  transform: none !important; /* Only use !important for this specific case */
+}
+
+/* Rest of your global styles */
