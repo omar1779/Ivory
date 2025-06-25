@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TaskStatus, TaskPriority } from '@/lib/types/task';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { Project } from '@/lib/types/project';
+import { XMarkIcon, TagIcon } from '@heroicons/react/24/outline';
+import { useProjects } from '@/lib/hooks/useProjects';
 
 interface NewTaskModalProps {
   open: boolean;
@@ -13,6 +15,7 @@ interface NewTaskModalProps {
     priority: TaskPriority;
     dueDate?: Date;
     tags?: string[];
+    projectId?: string;
   }) => void;
   defaultStatus: TaskStatus;
 }
@@ -24,6 +27,8 @@ export default function NewTaskModal({ open, onClose, onCreate }: NewTaskModalPr
   const [dueDate, setDueDate] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const { projects, loading: projectsLoading } = useProjects();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +40,7 @@ export default function NewTaskModal({ open, onClose, onCreate }: NewTaskModalPr
       priority,
       dueDate: dueDate ? new Date(dueDate) : undefined,
       tags: tags.length > 0 ? tags : undefined,
+      projectId: selectedProject || undefined,
     });
 
     // Reset form
@@ -44,6 +50,8 @@ export default function NewTaskModal({ open, onClose, onCreate }: NewTaskModalPr
     setDueDate('');
     setTags([]);
     setTagInput('');
+    setSelectedProject(null);
+    onClose();
   };
 
   const addTag = () => {
@@ -128,41 +136,67 @@ export default function NewTaskModal({ open, onClose, onCreate }: NewTaskModalPr
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+          <div className="mt-4">
+            <label htmlFor="project" className="block text-sm font-medium text-gray-300 mb-1">
+              Proyecto (opcional)
+            </label>
+            <select
+              id="project"
+              value={selectedProject || ''}
+              onChange={(e) => setSelectedProject(e.target.value || null)}
+              className="w-full rounded-md border border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
+            >
+              <option value="">Sin proyecto</option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mt-4">
+            <label htmlFor="tags" className="block text-sm font-medium text-gray-300">
               Etiquetas
             </label>
-            <div className="flex gap-2 mb-2">
+            <div className="mt-1 flex rounded-md shadow-sm">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <TagIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              </div>
               <input
                 type="text"
+                id="tags"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
-                className="flex-1 px-3 py-2 bg-gray-800 border border-white/10 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Agregar etiqueta"
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                placeholder="Añadir etiqueta..."
+                className="block w-full rounded-l-md border border-gray-600 bg-gray-700 pl-10 text-white placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2"
               />
               <button
                 type="button"
                 onClick={addTag}
-                className="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition-colors"
+                className="inline-flex items-center px-3 py-2 border border-l-0 border-gray-600 bg-gray-600 text-sm font-medium text-gray-300 hover:bg-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 rounded-r-md"
               >
-                Agregar
+                Añadir
               </button>
             </div>
             {tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag, index) => (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {tags.map((tag) => (
                   <span
-                    key={index}
-                    className="bg-indigo-500/10 text-indigo-300 px-2 py-1 rounded-full text-sm flex items-center gap-1 ring-1 ring-indigo-500/20"
+                    key={tag}
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"
                   >
                     {tag}
                     <button
                       type="button"
                       onClick={() => removeTag(tag)}
-                      className="text-indigo-400 hover:text-indigo-300 transition-colors"
+                      className="ml-1.5 inline-flex items-center justify-center h-4 w-4 rounded-full text-indigo-400 hover:bg-indigo-200 hover:text-indigo-500 focus:outline-none"
                     >
-                      ×
+                      <span className="sr-only">Eliminar etiqueta</span>
+                      <svg className="h-2 w-2" stroke="currentColor" fill="none" viewBox="0 0 8 8">
+                        <path strokeLinecap="round" strokeWidth="1.5" d="M1 1l6 6m0-6L1 7" />
+                      </svg>
                     </button>
                   </span>
                 ))}

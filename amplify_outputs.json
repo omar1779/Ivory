@@ -80,11 +80,74 @@
               "isRequired": false,
               "attributes": []
             },
+            "status": {
+              "name": "status",
+              "isArray": false,
+              "type": {
+                "enum": "ProjectStatus"
+              },
+              "isRequired": false,
+              "attributes": []
+            },
+            "parentProjectId": {
+              "name": "parentProjectId",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "subProjects": {
+              "name": "subProjects",
+              "isArray": true,
+              "type": {
+                "model": "Project"
+              },
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true,
+              "association": {
+                "connectionType": "HAS_MANY",
+                "associatedWith": [
+                  "parentProjectId"
+                ]
+              }
+            },
+            "parentProject": {
+              "name": "parentProject",
+              "isArray": false,
+              "type": {
+                "model": "Project"
+              },
+              "isRequired": false,
+              "attributes": [],
+              "association": {
+                "connectionType": "BELONGS_TO",
+                "targetNames": [
+                  "parentProjectId"
+                ]
+              }
+            },
             "tasks": {
               "name": "tasks",
               "isArray": true,
               "type": {
                 "model": "Task"
+              },
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true,
+              "association": {
+                "connectionType": "HAS_MANY",
+                "associatedWith": [
+                  "projectId"
+                ]
+              }
+            },
+            "reminders": {
+              "name": "reminders",
+              "isArray": true,
+              "type": {
+                "model": "Reminder"
               },
               "isRequired": false,
               "attributes": [],
@@ -103,6 +166,15 @@
             {
               "type": "model",
               "properties": {}
+            },
+            {
+              "type": "key",
+              "properties": {
+                "name": "gsi-Project.subProjects",
+                "fields": [
+                  "parentProjectId"
+                ]
+              }
             },
             {
               "type": "auth",
@@ -182,7 +254,7 @@
             "projectId": {
               "name": "projectId",
               "isArray": false,
-              "type": "ID",
+              "type": "String",
               "isRequired": false,
               "attributes": []
             },
@@ -243,6 +315,22 @@
               "type": "AWSDateTime",
               "isRequired": false,
               "attributes": []
+            },
+            "reminders": {
+              "name": "reminders",
+              "isArray": true,
+              "type": {
+                "model": "Reminder"
+              },
+              "isRequired": false,
+              "attributes": [],
+              "isArrayNullable": true,
+              "association": {
+                "connectionType": "HAS_MANY",
+                "associatedWith": [
+                  "taskId"
+                ]
+              }
             }
           },
           "syncable": true,
@@ -277,9 +365,141 @@
             "primaryKeyFieldName": "id",
             "sortKeyFieldNames": []
           }
+        },
+        "Reminder": {
+          "name": "Reminder",
+          "fields": {
+            "id": {
+              "name": "id",
+              "isArray": false,
+              "type": "ID",
+              "isRequired": true,
+              "attributes": []
+            },
+            "taskId": {
+              "name": "taskId",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "projectId": {
+              "name": "projectId",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "task": {
+              "name": "task",
+              "isArray": false,
+              "type": {
+                "model": "Task"
+              },
+              "isRequired": false,
+              "attributes": [],
+              "association": {
+                "connectionType": "BELONGS_TO",
+                "targetNames": [
+                  "taskId"
+                ]
+              }
+            },
+            "project": {
+              "name": "project",
+              "isArray": false,
+              "type": {
+                "model": "Project"
+              },
+              "isRequired": false,
+              "attributes": [],
+              "association": {
+                "connectionType": "BELONGS_TO",
+                "targetNames": [
+                  "projectId"
+                ]
+              }
+            },
+            "date": {
+              "name": "date",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": true,
+              "attributes": []
+            },
+            "type": {
+              "name": "type",
+              "isArray": false,
+              "type": {
+                "enum": "ReminderType"
+              },
+              "isRequired": false,
+              "attributes": []
+            },
+            "isActive": {
+              "name": "isActive",
+              "isArray": false,
+              "type": "Boolean",
+              "isRequired": false,
+              "attributes": []
+            },
+            "createdAt": {
+              "name": "createdAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": []
+            },
+            "updatedAt": {
+              "name": "updatedAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": []
+            }
+          },
+          "syncable": true,
+          "pluralName": "Reminders",
+          "attributes": [
+            {
+              "type": "model",
+              "properties": {}
+            },
+            {
+              "type": "auth",
+              "properties": {
+                "rules": [
+                  {
+                    "provider": "userPools",
+                    "ownerField": "owner",
+                    "allow": "owner",
+                    "identityClaim": "cognito:username",
+                    "operations": [
+                      "create",
+                      "update",
+                      "delete",
+                      "read"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "primaryKeyInfo": {
+            "isCustomPrimaryKey": false,
+            "primaryKeyFieldName": "id",
+            "sortKeyFieldNames": []
+          }
         }
       },
       "enums": {
+        "ProjectStatus": {
+          "name": "ProjectStatus",
+          "values": [
+            "ACTIVE",
+            "ARCHIVED"
+          ]
+        },
         "TaskStatus": {
           "name": "TaskStatus",
           "values": [
@@ -296,6 +516,15 @@
             "MEDIUM",
             "HIGH",
             "URGENT"
+          ]
+        },
+        "ReminderType": {
+          "name": "ReminderType",
+          "values": [
+            "DAILY",
+            "WEEKLY",
+            "MONTHLY",
+            "ONE_TIME"
           ]
         }
       },

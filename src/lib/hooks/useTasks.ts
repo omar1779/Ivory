@@ -54,11 +54,11 @@ export function useTasks(projectId?: string) {
   const createTask = useCallback(async (taskData: {
     title: string;
     description?: string;
-    status?: TaskStatus;
-    priority?: TaskPriority;
+    priority: TaskPriority;
+    status: TaskStatus;
     dueDate?: Date;
-    projectId?: string;
     tags?: string[];
+    projectId?: string;
   }) => {
     if (!client) {
       throw new Error('Cliente no disponible');
@@ -66,15 +66,21 @@ export function useTasks(projectId?: string) {
 
     try {
       console.log('Creando tarea:', taskData);
-      const result = await client.models.Task.create({
+      const taskInput: any = {
         title: taskData.title,
         description: taskData.description,
-        status: taskData.status || 'TODO',
-        priority: taskData.priority || 'MEDIUM',
+        priority: taskData.priority,
+        status: taskData.status,
         dueDate: taskData.dueDate?.toISOString(),
-        projectId: taskData.projectId,
         tags: taskData.tags,
-      });
+      };
+
+      // Solo agregar projectId si está definido
+      if (taskData.projectId) {
+        taskInput.projectId = taskData.projectId;
+      }
+
+      const result = await client.models.Task.create(taskInput);
       
       if (result.data) {
         setTasks(prev => [...prev, result.data as AmplifyTask]);
