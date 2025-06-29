@@ -2,6 +2,29 @@
 
 Ivory es un SaaS de productividad enfocado en autodidactas y estudiantes. Su objetivo es brindar herramientas digitales para mejorar la organización, el aprendizaje y el seguimiento del progreso personal.
 
+## 📅 Cambios Recientes (28/06/2024)
+
+### Mejoras en el Sistema de Tareas
+- **Correcciones de TypeScript**:
+  - Mejor manejo de tipos para fechas en tareas
+  - Tipos más estrictos para las propiedades de las tareas
+  - Corrección de errores de tipo en componentes relacionados con fechas
+
+- **Manejo de Fechas**:
+  - Implementación consistente del manejo de fechas en todo el sistema
+  - Validación mejorada de fechas en formularios
+  - Mejor conversión entre formatos de fecha (Date, string, ISO)
+
+- **Mejoras en la UI/UX**:
+  - Validación de formularios más robusta
+  - Mensajes de error más descriptivos
+  - Mejor retroalimentación al usuario durante operaciones
+
+- **Optimizaciones**:
+  - Eliminación de código duplicado
+  - Mejor manejo de estados de carga
+  - Optimización de re-renderizados en componentes de tareas
+
 ---
 
 ## 🎯 Puntos de Diferenciación
@@ -47,7 +70,8 @@ Ivory es un SaaS de productividad enfocado en autodidactas y estudiantes. Su obj
   - [x] Creación de proyectos
   - [x] Selección de proyecto activo
   - [x] Visualización de tareas por proyecto
-  - [ ] Eliminación de proyectos
+  - [x] Eliminación de proyectos
+  - [x] Sistema de etiquetado de tareas
   - [ ] Etiquetado de tareas con su proyecto cuando se ven todas las tareas
 - [x] Sistema de prioridades
   - [x] Prioridades: Baja, Media, Alta, Urgente
