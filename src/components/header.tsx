@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAmplify } from "@/provider/AmplifyProvider";
 import Image from "next/image";
-import { FiMenu, FiX, FiCheckSquare, FiClipboard, FiTrendingUp, FiLink, FiActivity, FiCalendar, FiLogIn, FiInfo } from "react-icons/fi";
+import { FiMenu, FiX, FiCheckSquare, FiClipboard, FiTrendingUp, FiLink, FiActivity, FiCalendar, FiLogIn, FiInfo, FiUser, FiCheckCircle } from "react-icons/fi";
 import { FaChevronDown } from "react-icons/fa";
 import Link from "next/link";
 import {
@@ -55,40 +55,20 @@ const accionesRapidas = [
 ];
 
 export default function Header() {
-  const { initialized } = useAmplify();
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, signOut: handleSignOut } = useAmplify();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    if (!initialized) return;
-
-    const checkUser = async () => {
-      try {
-        const user = await getCurrentUser();
-        setUserEmail(user.signInDetails?.loginId ?? null);
-      } catch (error) {
-        console.error("Error al obtener el usuario:", error);
-        // Usuario no autenticado - esto es normal
-        setUserEmail(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkUser();
-  }, [initialized]);
-
   const handleLogout = async () => {
     try {
-      await signOut();
-      setUserEmail(null);
-      router.push("/");
+      await handleSignOut();
+      router.push('/');
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
     }
   };
+  
+  const userEmail = user?.signInDetails?.loginId || user?.username || null;
 
   return (
     <header className="relative isolate z-10 bg-gray-900">
@@ -117,7 +97,7 @@ export default function Header() {
           </button>
         </div>
         
-        {!loading && userEmail ? (
+        {userEmail ? (
           <>
             <PopoverGroup className="hidden lg:flex lg:gap-x-8">
               <Popover>
@@ -175,17 +155,28 @@ export default function Header() {
             </PopoverGroup>
             
             <div className="hidden lg:flex lg:flex-1 lg:justify-end items-center gap-4">
-              <span className="text-white text-sm mr-2">{userEmail}</span>
+              <div className="flex items-center gap-2 text-sm text-gray-200">
+                <div className="relative">
+                  {/* <FiUser size={20} className="text-indigo-400" /> */}
+                  <FiCheckCircle 
+                    size={20} 
+                    className=" text-green-400 bg-gray-900 rounded-full animate-pulse" 
+                    aria-label="Sesión activa"
+                  />
+                </div>
+                <span>Sesión activa</span>
+              </div>
               <button
                 onClick={handleLogout}
-                className="inline-flex items-center gap-x-1 bg-indigo-500 hover:bg-indigo-400 text-white px-3 py-1.5 rounded text-sm font-semibold"
+                className="inline-flex items-center gap-x-1 bg-indigo-500 hover:bg-indigo-400 text-white px-3 py-1.5 rounded text-sm font-semibold transition-colors"
+                title="Cerrar sesión"
               >
                 <FiLogIn size={16} />
                 Cerrar sesión
               </button>
             </div>
           </>
-        ) : !loading ? (
+        ) : (
           <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-x-6">
             <Link href="/login" className="text-sm font-semibold text-indigo-400 hover:text-indigo-300">
               Iniciar sesión
@@ -197,7 +188,7 @@ export default function Header() {
               Registrarse
             </Link>
           </div>
-        ) : null}
+        )}
       </nav>
       
       {/* Menú móvil */}
@@ -226,10 +217,20 @@ export default function Header() {
           </div>
           <div className="mt-6 flow-root">
             <div className="-my-6 divide-y divide-gray-700">
-              {!loading && userEmail ? (
+              {userEmail ? (
                 <>
                   <div className="py-6">
-                    <div className="mb-4 text-white">{userEmail}</div>
+                    <div className="mb-4 flex items-center gap-2 text-white">
+                      <div className="relative">
+                        <FiUser size={20} className="text-indigo-400" />
+                        <FiCheckCircle 
+                          size={12} 
+                          className="absolute -bottom-1 -right-1 text-green-400 bg-gray-900 rounded-full" 
+                          aria-label="Sesión activa"
+                        />
+                      </div>
+                      <span>Sesión activa</span>
+                    </div>
                     <Disclosure as="div" className="-mx-3">
                       <DisclosureButton className="group flex w-full items-center justify-between rounded-lg py-2 pr-3.5 pl-3 text-base/7 font-semibold text-white hover:bg-gray-800">
                         Herramientas

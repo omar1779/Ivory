@@ -72,7 +72,7 @@ Ivory es un SaaS de productividad enfocado en autodidactas y estudiantes. Su obj
   - [x] Visualización de tareas por proyecto
   - [x] Eliminación de proyectos
   - [x] Sistema de etiquetado de tareas
-  - [ ] Etiquetado de tareas con su proyecto cuando se ven todas las tareas
+  - [x] Etiquetado de tareas con su proyecto cuando se ven todas las tareas
 - [x] Sistema de prioridades
   - [x] Prioridades: Baja, Media, Alta, Urgente
   - [x] Visualización por colores
@@ -87,12 +87,6 @@ Ivory es un SaaS de productividad enfocado en autodidactas y estudiantes. Su obj
 - [ ] Exportación de notas
 
 ### 🚧 Próximas Tareas
-
-#### Gestión de Proyectos
-- [ ] Implementar eliminación de proyectos
-  - [ ] Confirmación antes de eliminar
-  - [ ] Opción para mover tareas a otro proyecto o eliminarlas
-  - [ ] Actualización de la interfaz después de eliminar
 
 #### Mejoras en la Visualización de Tareas
 - [ ] Mostrar etiqueta de proyecto en las tarjetas de tareas

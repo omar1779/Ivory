@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect} from 'react';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../../amplify/data/resource';
 import { 
@@ -168,12 +168,43 @@ export function useProjects() {
     }
   }, [initialized, client, fetchProjects]);
 
+  const deleteProject = useCallback(async (projectId: string) => {
+    if (!client || !initialized) {
+      throw new Error('Cliente no inicializado');
+    }
+
+    try {
+      // Primero, verificar si el proyecto tiene tareas asociadas
+      const tasksResult = await client.models.Task.list({
+        filter: { projectId: { eq: projectId } }
+      });
+
+      if (tasksResult.data && tasksResult.data.length > 0) {
+        // Opción: Podríamos ofrecer la opción de eliminar las tareas también
+        throw new Error('No se puede eliminar el proyecto porque tiene tareas asociadas');
+      }
+
+      // Si no hay tareas, proceder con la eliminación
+      await client.models.Project.delete({
+        id: projectId
+      });
+
+      // Actualizar la lista de proyectos
+      await fetchProjects();
+      return true;
+    } catch (error) {
+      console.error('Error al eliminar proyecto:', error);
+      throw error;
+    }
+  }, [client, initialized, fetchProjects]);
+
   return {
     projects,
     loading,
     error,
     fetchProjects,
     createProject,
+    deleteProject,
     getProjectsWithTasks
   };
 }

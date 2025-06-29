@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useNotification } from '@/components/ui/NotificationProvider';
 import { PlusIcon, FolderPlusIcon } from '@heroicons/react/24/outline';
 import { useTasks } from '@/lib/hooks/useTasks';
 import { useProjects } from '@/lib/hooks/useProjects';
@@ -42,11 +43,14 @@ const TaskProjectModal = dynamic<{
   onCreateProject: (name: string, description?: string) => Promise<boolean>;
   projects: Project[];
   onSelectProject: (projectId: string | null) => void;
+  onDeleteProject?: (projectId: string) => Promise<void>;
 }>(() => import('@/components/tasks/TaskProjectModal').then(mod => mod.TaskProjectModal), {
   ssr: false
 });
 
 export default function TasksPage() {
+  const { showSuccess, showError } = useNotification();
+  const [deletedTasks, setDeletedTasks] = useState<Record<string, Task>>({});
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const setShowNewTaskModal = setIsNewTaskModalOpen; // Alias para compatibilidad
@@ -60,29 +64,43 @@ export default function TasksPage() {
     selectedProject ? (typeof selectedProject === 'string' ? selectedProject : selectedProject.id) : undefined
   );
 
+  const { 
+    projects, 
+    loading: projectsLoading, 
+    error: projectsError, 
+    createProject,
+    deleteProject,
+    fetchProjects
+  } = useProjects();
+
   // Convertir tareas de Amplify a formato Task para la UI
   const tasks = useMemo(() => {
-    return (amplifyTasks || []).map(task => ({
-      id: task.id,
-      title: task.title || 'Sin título',
-      description: task.description || undefined,
-      status: task.status as TaskStatus,
-      priority: task.priority as TaskPriority,
-      dueDate: task.dueDate || undefined,
-      projectId: task.projectId || undefined,
-      tags: task.tags || [],
-      estimatedHours: task.estimatedHours || undefined,
-      actualHours: task.actualHours || undefined,
-      createdAt: task.createdAt || undefined,
-      updatedAt: task.updatedAt || undefined,
-      owner: task.owner || undefined
-    } as Task));
-  }, [amplifyTasks]);
+    return (amplifyTasks || []).map(task => {
+      const project = task.projectId ? projects?.find(p => p.id === task.projectId) : undefined;
+      return {
+        id: task.id,
+        title: task.title || 'Sin título',
+        description: task.description || undefined,
+        status: task.status as TaskStatus,
+        priority: task.priority as TaskPriority,
+        dueDate: task.dueDate || undefined,
+        projectId: task.projectId || undefined,
+        project: project ? { name: project.name } : undefined,
+        tags: task.tags || [],
+        estimatedHours: task.estimatedHours || undefined,
+        actualHours: task.actualHours || undefined,
+        createdAt: task.createdAt || undefined,
+        updatedAt: task.updatedAt || undefined,
+        owner: task.owner || undefined
+      } as Task & { project?: { name: string } };
+    });
+  }, [amplifyTasks, projects]);
 
   // Filtrar tareas por proyecto seleccionado
   const filteredTasks = useMemo(() => {
     if (!selectedProject) return tasks;
-    const projectId = typeof selectedProject === 'string' ? selectedProject : selectedProject.id;
+    // Si selectedProject es un string, es un ID, si es un objeto, es el proyecto completo
+    const projectId = typeof selectedProject === 'string' ? selectedProject : selectedProject?.id;
     return tasks.filter(task => task?.projectId === projectId);
   }, [tasks, selectedProject]);
 
@@ -98,17 +116,32 @@ export default function TasksPage() {
       );
     });
   }, [filteredTasks]);
-  const { projects, loading: projectsLoading, createProject } = useProjects();
 
   const handleCreateProject = useCallback(async (name: string, description?: string) => {
     try {
       await createProject({ name, description });
+      await fetchProjects();
       return true;
     } catch (error) {
       console.error('Error creating project:', error);
-      return false;
+      throw error;
     }
-  }, [createProject]);
+  }, [createProject, fetchProjects]);
+
+  const handleDeleteProject = useCallback(async (projectId: string) => {
+    try {
+      await deleteProject(projectId);
+      // Si el proyecto eliminado es el seleccionado, volver a "Todas las tareas"
+      const selectedId = typeof selectedProject === 'string' ? selectedProject : selectedProject?.id;
+      if (selectedId === projectId) {
+        setSelectedProject(null);
+      }
+      await fetchProjects();
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      throw error;
+    }
+  }, [deleteProject, fetchProjects, selectedProject]);
 
   useEffect(() => {
     if (selectedProject) {
@@ -137,35 +170,58 @@ export default function TasksPage() {
     setIsNewTaskModalOpen(true);
   }, []);
 
-  const handleDeleteTask = useCallback(async (taskId: string) => {
-    if (confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
-      try {
-        await deleteTask(taskId);
-      } catch (error) {
-        console.error('Error deleting task:', error);
-      }
-    }
-  }, [deleteTask]);
-
   const handleUpdateTask = useCallback(async (updates: {
     title?: string;
-    description?: string | null;
+    description?: string;
     priority?: TaskPriority;
-    dueDate?: Date | string | null;
+    dueDate?: string | Date | null | undefined;
     tags?: string[];
   }) => {
-    if (!editingTask) return;
+    if (!editingTask?.id) return;
     
     try {
-      // Formatear la fecha si es necesario
-      const formattedUpdates: Record<string, any> = {
-        ...updates
-      };
+      // Crear una copia segura de los updates con tipos explícitos
+      const formattedUpdates: Record<string, unknown> = {};
       
-      if ('dueDate' in updates) {
-        formattedUpdates.dueDate = updates.dueDate instanceof Date ? 
-          updates.dueDate.toISOString() : 
-          updates.dueDate;
+      // Copiar todas las propiedades excepto dueDate
+      for (const [key, value] of Object.entries(updates)) {
+        if (key !== 'dueDate' && value !== undefined) {
+          formattedUpdates[key] = value;
+        }
+      }
+      
+      // Manejar la fecha de vencimiento
+      if ('dueDate' in updates && updates.dueDate !== undefined) {
+        const dueDateValue = updates.dueDate;
+        if (dueDateValue) {
+          try {
+            let date: Date;
+            
+            if (dueDateValue instanceof Date) {
+              date = dueDateValue;
+            } else if (typeof dueDateValue === 'string') {
+              date = new Date(dueDateValue);
+            } else {
+              // Si no es un Date ni un string, intentar convertirlo a string y luego a Date
+              date = new Date(String(dueDateValue));
+            }
+            
+            // Verificar si la fecha es válida
+            if (!isNaN(date.getTime())) {
+              formattedUpdates.dueDate = date.toISOString();
+            } else if (typeof dueDateValue === 'string') {
+              // Si es un string pero no una fecha válida, mantener el valor original
+              formattedUpdates.dueDate = dueDateValue;
+            } else {
+              // Para cualquier otro caso, convertir a string
+              formattedUpdates.dueDate = String(dueDateValue);
+            }
+          } catch (error) {
+            console.error('Error al formatear la fecha:', error);
+            // En caso de error, mantener el valor original como string
+            formattedUpdates.dueDate = String(dueDateValue);
+          }
+        }
       }
       
       // Asegurarse de que description sea undefined en lugar de null
@@ -181,6 +237,47 @@ export default function TasksPage() {
     }
   }, [editingTask, updateTask]);
 
+  const handleDeleteTask = useCallback(async (taskId: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+      return false;
+    }
+    
+    try {
+      const taskToDelete = tasks.find((t: Task) => t.id === taskId);
+      if (!taskToDelete) return false;
+      
+      // Guardar la tarea eliminada temporalmente para posible recuperación
+      setDeletedTasks((prev: Record<string, Task>) => ({
+        ...prev,
+        [taskId]: taskToDelete
+      }));
+      
+      if (deleteTask) {
+        await deleteTask(taskId);
+        
+        // Mostrar notificación de éxito
+        if (showSuccess) {
+          showSuccess('Tarea eliminada correctamente', {
+            title: 'Tarea eliminada',
+            onUndo: () => {
+              // Aquí podríamos implementar la recuperación de la tarea
+              console.log('Recuperar tarea:', taskToDelete);
+            }
+          });
+        }
+        
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      if (showError) {
+        showError('No se pudo eliminar la tarea. Por favor, inténtalo de nuevo.');
+      }
+      return false;
+    }
+  }, [deleteTask, tasks, showSuccess, showError]);
+
   const handleCreateTaskSubmit = useCallback(async (taskData: {
     title: string;
     description?: string | null;
@@ -191,29 +288,56 @@ export default function TasksPage() {
   }) => {
     try {
       const projectId = typeof selectedProject === 'string' ? selectedProject : selectedProject?.id;
-      const taskInput: any = {
+      const taskInput: {
+        title: string;
+        description?: string;
+        priority: TaskPriority;
+        status: TaskStatus;
+        projectId?: string;
+        tags: string[];
+        dueDate?: string;
+      } = {
         title: taskData.title,
-        description: taskData.description || undefined, // Asegurar que no sea null
+        description: taskData.description || undefined,
         priority: taskData.priority,
         status: newTaskStatus,
-        projectId,
+        projectId: projectId || undefined,
         tags: taskData.tags || [],
       };
       
+      // Formatear la fecha de vencimiento si existe
       if (taskData.dueDate) {
-        taskInput.dueDate = taskData.dueDate instanceof Date ? 
-          taskData.dueDate.toISOString() : 
-          taskData.dueDate;
+        if (taskData.dueDate instanceof Date) {
+          taskInput.dueDate = taskData.dueDate;
+        } else if (typeof taskData.dueDate === 'string') {
+          // Convertir string a Date
+          const date = new Date(taskData.dueDate);
+          if (!isNaN(date.getTime())) {
+            taskInput.dueDate = date;
+          }
+        }
+        // Si no es una fecha válida, no se asigna dueDate
       }
       
-      await createTask(taskInput);
+      const newTask = await createTask(taskInput);
+      
+      // Mostrar notificación de éxito
+      showSuccess(`Tarea "${taskData.title}" creada correctamente`, {
+        title: 'Tarea creada',
+        onView: () => {
+          // Aquí podrías implementar la navegación a la tarea
+          console.log('Ver tarea creada:', newTask?.id);
+        }
+      });
+      
       setIsNewTaskModalOpen(false);
       return true;
     } catch (error) {
       console.error('Error creating task:', error);
+      showError('No se pudo crear la tarea. Por favor, inténtalo de nuevo.');
       return false;
     }
-  }, [createTask, newTaskStatus, selectedProject]);
+  }, [createTask, newTaskStatus, selectedProject, showSuccess, showError]);
 
   const handleTaskStatusChange = useCallback(async (taskId: string, status: TaskStatus) => {
     try {
@@ -242,7 +366,7 @@ export default function TasksPage() {
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-white">Tareas</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-white break-words">Tareas</h1>
               <div className="flex items-center">
                 <span className="text-gray-400 mr-2">en</span>
                 <button
@@ -256,10 +380,10 @@ export default function TasksPage() {
                 </button>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <button
                 onClick={() => setIsProjectModalOpen(true)}
-                className="flex items-center px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700/50 hover:bg-gray-700 rounded-md border border-gray-600"
+                className="flex items-center justify-center w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700/50 hover:bg-gray-700 rounded-md border border-gray-600"
               >
                 <FolderPlusIcon className="h-4 w-4 mr-2" />
                 Proyectos
@@ -269,7 +393,7 @@ export default function TasksPage() {
                   setNewTaskStatus(TaskStatus.TODO);
                   setIsNewTaskModalOpen(true);
                 }}
-                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
+                className="flex items-center justify-center w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
               >
                 <PlusIcon className="h-5 w-5 mr-2" />
                 Nueva Tarea
@@ -324,12 +448,13 @@ export default function TasksPage() {
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
         onCreateProject={handleCreateProject}
-        projects={projects}
+        projects={projects as any} // Type assertion since we're not using subProjects/tasks in the modal
         onSelectProject={(projectId) => {
           const project = projects.find(p => p.id === projectId) || null;
           setSelectedProject(project);
           setIsProjectModalOpen(false);
         }}
+        onDeleteProject={handleDeleteProject}
       />
 
       {editingTask && (

@@ -4,13 +4,14 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { TaskStatus, Task } from '@/lib/types/task';
 import TaskCard from './TaskCard';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import { useNotification } from '../ui/NotificationProvider';
 
 interface TaskBoardProps {
   tasks: Task[];
   onUpdateStatus: (taskId: string, newStatus: TaskStatus) => void;
   onCreateTask: (status: TaskStatus) => void;
   onEditTask: (task: Task) => void;
-  onDeleteTask: (taskId: string) => void;
+  onDeleteTask: (taskId: string) => Promise<boolean>;
 }
 
 const COLUMNS = [
@@ -74,11 +75,12 @@ export default function TaskBoard({
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-6 pb-6 mx-auto">
+      <div className="relative w-full overflow-x-auto pb-4 sm:pb-6">
+        <div className="inline-flex w-max min-w-full px-3 sm:px-6 space-x-4 sm:space-x-6">
         {COLUMNS.map(column => (
           <div
             key={column.id}
-            className="bg-white/5 rounded-lg border border-white/10 flex flex-col shadow-lg overflow-hidden"
+            className="w-72 sm:w-80 bg-white/5 rounded-lg border border-white/10 flex flex-col shadow-lg overflow-hidden flex-shrink-0"
           >
             <div className={`${column.headerColor} py-3 px-3 border-b border-white/10 rounded-t-lg`}>
               <div className="flex justify-between items-center">
@@ -94,8 +96,9 @@ export default function TaskBoard({
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className={`p-3 min-h-[350px] flex-1 transition-colors duration-200 ${snapshot.isDraggingOver ? column.color : ''
-                    } overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent`}
+                  className={`p-2 sm:p-3 min-h-[300px] sm:min-h-[350px] flex-1 transition-colors duration-200 ${
+                    snapshot.isDraggingOver ? column.color : ''
+                  } overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent`}
                 >
                   {getTasksByStatus(column.id).map((task, index) => (
                     <Draggable key={task.id} draggableId={task.id} index={index}>
@@ -131,6 +134,7 @@ export default function TaskBoard({
             </Droppable>
           </div>
         ))}
+        </div>
       </div>
     </DragDropContext>
   );

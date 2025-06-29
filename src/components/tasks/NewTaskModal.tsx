@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { TaskStatus, TaskPriority } from '@/lib/types/task';
 import { Project } from '@/lib/types/project';
 import { XMarkIcon, TagIcon } from '@heroicons/react/24/outline';
 import { useProjects } from '@/lib/hooks/useProjects';
+import { useNotification } from '@/components/ui/NotificationProvider';
 
 interface NewTaskModalProps {
   open: boolean;
@@ -30,29 +31,46 @@ export default function NewTaskModal({ open, onClose, onCreate }: NewTaskModalPr
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const { projects, loading: projectsLoading } = useProjects();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { showSuccess, showError } = useNotification();
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    onCreate({
-      title: title.trim(),
-      description: description.trim() || undefined,
-      priority,
-      dueDate: dueDate ? new Date(dueDate) : undefined,
-      tags: tags.length > 0 ? tags : undefined,
-      projectId: selectedProject || undefined,
-    });
+    try {
+      const taskData = {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        priority,
+        dueDate: dueDate ? new Date(dueDate) : undefined,
+        tags: tags.length > 0 ? tags : undefined,
+        projectId: selectedProject || undefined,
+      };
 
-    // Reset form
-    setTitle('');
-    setDescription('');
-    setPriority(TaskPriority.MEDIUM);
-    setDueDate('');
-    setTags([]);
-    setTagInput('');
-    setSelectedProject(null);
-    onClose();
-  };
+      await onCreate(taskData);
+
+      // Mostrar notificación de éxito
+      showSuccess(`Tarea "${taskData.title}" creada correctamente`, {
+        title: 'Tarea creada',
+        onView: () => {
+          // Aquí podrías implementar la navegación a la tarea
+          console.log('Ver tarea creada');
+        }
+      });
+
+      // Reset form
+      setTitle('');
+      setDescription('');
+      setPriority(TaskPriority.MEDIUM);
+      setDueDate('');
+      setTags([]);
+      setSelectedProject(null);
+      onClose();
+    } catch (error) {
+      console.error('Error al crear tarea:', error);
+      showError('No se pudo crear la tarea. Por favor, inténtalo de nuevo.');
+    }
+  }, [title, description, priority, dueDate, tags, selectedProject, onCreate, onClose, showSuccess, showError]);
 
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {

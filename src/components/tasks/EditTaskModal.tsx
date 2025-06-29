@@ -12,7 +12,7 @@ interface EditTaskModalProps {
     title?: string;
     description?: string;
     priority?: TaskPriority;
-    dueDate?: Date;
+    dueDate?: string | Date | null | undefined;
     tags?: string[];
   }) => void;
 }
@@ -30,7 +30,20 @@ export default function EditTaskModal({ open, task, onClose, onUpdate }: EditTas
       setTitle(task.title || '');
       setDescription(task.description || '');
       setPriority(task.priority || TaskPriority.MEDIUM);
-      setDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '');
+      
+      // Handle dueDate conversion from string to Date to input format
+      if (task.dueDate) {
+        try {
+          const date = new Date(task.dueDate);
+          if (!isNaN(date.getTime())) {
+            setDueDate(date.toISOString().split('T')[0]);
+            return;
+          }
+        } catch (e) {
+          console.error('Error parsing due date:', e);
+        }
+      }
+      setDueDate('');
       setTags(task.tags || []);
     }
   }, [task]);
@@ -43,7 +56,7 @@ export default function EditTaskModal({ open, task, onClose, onUpdate }: EditTas
       title: title.trim(),
       description: description.trim() || undefined,
       priority,
-      dueDate: dueDate ? new Date(dueDate) : undefined,
+      dueDate: dueDate ? dueDate : null,
       tags: tags.length > 0 ? tags : undefined,
     });
   };
