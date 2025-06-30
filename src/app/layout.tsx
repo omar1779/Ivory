@@ -4,7 +4,9 @@ import { Inter } from 'next/font/google';
 import "./globals.css";
 import { AmplifyProvider } from "../provider/AmplifyProvider";
 import { NotificationProvider } from '@/components/ui/NotificationProvider';
+import { ToastNotifications } from '@/components/ui/ToastNotifications';
 import Header from "@/components/header";
+import 'react-toastify/dist/ReactToastify.css';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,13 +32,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className="h-full">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${inter.className} antialiased h-full bg-gray-900`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} font-sans bg-gray-950 text-gray-100 min-h-screen flex flex-col`}>
         <AmplifyProvider>
           <NotificationProvider>
             <Header />
-            {children}
+            <main className="flex-1 overflow-hidden">
+              {children}
+            </main>
+            <ToastNotifications />
           </NotificationProvider>
         </AmplifyProvider>
       </body>

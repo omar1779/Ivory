@@ -1,6 +1,20 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 
 const schema = a.schema({
+  Note: a
+    .model({
+      title: a.string().required(),
+      content: a.string().required(),
+      tags: a.string().array(),
+      folder: a.string(),
+      isPinned: a.boolean().default(false),
+      isArchived: a.boolean().default(false),
+      owner: a.string(),
+      createdAt: a.datetime(),
+      updatedAt: a.datetime()
+    })
+    .authorization((allow) => [allow.owner()]),
+
   Project: a
     .model({
       name: a.string().required(),
@@ -62,5 +76,8 @@ export const data = defineData({
   schema,
   authorizationModes: {
     defaultAuthorizationMode: 'userPool',
+    apiKeyAuthorizationMode: {
+      expiresInDays: 30,
+    },
   },
 });

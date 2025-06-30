@@ -81,10 +81,15 @@ Ivory es un SaaS de productividad enfocado en autodidactas y estudiantes. Su obj
   - [x] Indicadores visuales para tareas vencidas
 
 #### 1.2. Sistema de Notas
-- [ ] Editor de notas enriquecido
-- [ ] Organización por carpetas y etiquetas
-- [ ] Sistema de búsqueda inteligente
-- [ ] Exportación de notas
+- [x] Editor de notas enriquecido
+- [x] Organización por carpetas y etiquetas
+- [x] Sistema de búsqueda inteligente
+- [x] Exportación a PDF
+- [x] Notificaciones personalizadas
+  - [x] Nota creada
+  - [x] Nota actualizada
+  - [x] Nota eliminada
+  - [x] Nota anclada/desanclada
 
 ### 🚧 Próximas Tareas
 

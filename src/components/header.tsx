@@ -31,7 +31,7 @@ const herramientas = [
   {
     name: "Notas",
     description: "Toma notas y organiza tus documentos",
-    href: "/notas",
+    href: "/notes",
     icon: FiClipboard,
   },
   {

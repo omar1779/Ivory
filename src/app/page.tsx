@@ -166,10 +166,9 @@ const footerNavigation = {
 
 export default function Home() {
   return (
-    <div className="bg-gray-900">
-      <main>
-        {/* Hero section */}
-        <div className="relative isolate overflow-hidden">
+    <div className="min-h-full w-full bg-gray-900">
+      {/* Hero section */}
+      <div className="relative isolate">
           <svg
             aria-hidden="true"
             className="absolute inset-0 -z-10 size-full mask-[radial-gradient(100%_100%_at_top_right,white,transparent)] stroke-white/10"
@@ -459,8 +458,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </main>
-
       {/* Footer */}
       <footer className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="border-t border-white/10 py-12 md:flex md:items-center md:justify-between">

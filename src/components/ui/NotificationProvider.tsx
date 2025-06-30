@@ -1,8 +1,9 @@
 'use client';
 
-import { createContext, useCallback, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Notification } from './Notification';
+import { toast } from 'react-toastify';
 
 type NotificationType = 'success' | 'error' | 'warning' | 'info';
 
@@ -64,55 +65,76 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       options: NotificationOptions = {}
     ) => {
       const id = uuidv4();
-      const { 
-        title, 
-        duration = defaultDuration,
-        onUndo,
-        onView,
-        onRetry,
-        actions = []
-      } = options;
+      const { title, duration = 5000, onUndo, onView, onRetry, actions = [] } = options;
 
-      // Add action buttons based on provided callbacks
-      const notificationActions = [...actions];
+      // Mostrar notificación toast
+      const toastMessage = Array.isArray(message) ? message.join(' ') : message;
       
+      switch (type) {
+        case 'success':
+          toast.success(toastMessage, { autoClose: duration });
+          break;
+        case 'error':
+          toast.error(toastMessage, { autoClose: duration });
+          break;
+        case 'warning':
+          toast.warning(toastMessage, { autoClose: duration });
+          break;
+        default:
+          toast.info(toastMessage, { autoClose: duration });
+      }
+
+      // Mantener la funcionalidad de notificaciones personalizadas si es necesario
+      const notificationActions = [];
+
       if (onUndo) {
         notificationActions.push({
           label: 'Deshacer',
-          onClick: onUndo
+          onClick: () => {
+            onUndo();
+            removeNotification(id);
+          },
         });
       }
-      
+
       if (onView) {
         notificationActions.push({
           label: 'Ver',
-          onClick: onView
+          onClick: () => {
+            onView();
+            removeNotification(id);
+          },
         });
       }
-      
+
       if (onRetry) {
         notificationActions.push({
           label: 'Reintentar',
-          onClick: onRetry
+          onClick: () => {
+            onRetry();
+            removeNotification(id);
+          },
         });
       }
 
-      setNotifications((prev) => [
-        ...prev,
-        {
-          id,
-          message,
-          type,
-          title,
-          duration,
-          actions: notificationActions.length > 0 ? notificationActions : undefined,
-        },
-      ]);
+      const newNotification: NotificationMessage = {
+        id,
+        message,
+        type,
+        title,
+        duration,
+        actions: [...notificationActions, ...actions],
+      };
 
-      // Auto-dismiss after duration
-      setTimeout(() => {
-        removeNotification(id);
-      }, duration);
+      setNotifications((prev) => [...prev, newNotification]);
+
+      if (duration > 0) {
+        setTimeout(() => {
+          removeNotification(id);
+        }, duration);
+      }
+
+      return id;
     },
     [removeNotification]
   );
