@@ -13,7 +13,6 @@ export default function ProjectsPage() {
     loading, 
     error, 
     createProject, 
-    getProjectsWithTasks, 
     deleteProject 
   } = useProjects();
   
@@ -23,17 +22,6 @@ export default function ProjectsPage() {
 
   if (loading) return <div className="flex items-center justify-center h-screen">Cargando...</div>;
   if (error) return <div className="flex items-center justify-center h-screen">Error: {error}</div>;
-
-  // Obtener los proyectos con sus tareas asociadas
-  const getProjectsWithTasksAsync = async (project: Project) => {
-    try {
-      const result = await getProjectsWithTasks(project.id);
-      return result || project;
-    } catch (err) {
-      console.error('Error al obtener tareas:', err);
-      return project;
-    }
-  };
 
   // Convertir los proyectos a ProjectWithTasks
   const formattedProjects: ProjectWithTasksAndSubProjects[] = projects.map(project => ({

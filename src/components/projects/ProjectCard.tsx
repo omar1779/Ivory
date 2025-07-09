@@ -3,7 +3,7 @@ import { TaskPriority } from '@/lib/types/task';
 
 interface ProjectCardProps {
   project: Project;
-  tasks: any[];
+  tasks: Array<{ priority: TaskPriority }>;
   onEdit?: () => void;
   onDelete?: () => void;
 }
@@ -35,7 +35,7 @@ export function ProjectCard({ project, tasks, onEdit, onDelete }: ProjectCardPro
 
       {Object.entries(priorityCounts).length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
-          {Object.entries(priorityCounts).map(([priority, count]) => (
+          {Object.entries(priorityCounts).map(([priority]) => (
             <span
               key={priority}
               className={

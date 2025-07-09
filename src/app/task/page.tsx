@@ -6,7 +6,7 @@ import { PlusIcon, FolderPlusIcon } from '@heroicons/react/24/outline';
 import { useTasks } from '@/lib/hooks/useTasks';
 import { useProjects } from '@/lib/hooks/useProjects';
 import { TaskStatus, TaskPriority, Task } from '@/lib/types/task';
-import { Project, ProjectWithTasksAndSubProjects } from '@/lib/types/project';
+import { Project, ProjectType } from '@/lib/types/project';
 import dynamic from 'next/dynamic';
 
 // Lazy loading de componentes pesados
@@ -50,10 +50,9 @@ const TaskProjectModal = dynamic<{
 
 export default function TasksPage() {
   const { showSuccess, showError } = useNotification();
-  const [deletedTasks, setDeletedTasks] = useState<Record<string, Task>>({});
+  // Estado simplificado para el modal de nueva tarea
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
-  const setShowNewTaskModal = setIsNewTaskModalOpen; // Alias para compatibilidad
   const [selectedProject, setSelectedProject] = useState<Project | string | null>(null);
   const [selectedProjectName, setSelectedProjectName] = useState<string>('Todas las tareas');
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -66,11 +65,10 @@ export default function TasksPage() {
 
   const { 
     projects, 
-    loading: projectsLoading, 
-    error: projectsError, 
-    createProject,
-    deleteProject,
-    fetchProjects
+    loading: projectsLoading,
+    createProject: createProjectFn,
+    deleteProject: deleteProjectFn,
+    fetchProjects: fetchProjectsFn
   } = useProjects();
 
   // Convertir tareas de Amplify a formato Task para la UI
@@ -119,29 +117,38 @@ export default function TasksPage() {
 
   const handleCreateProject = useCallback(async (name: string, description?: string) => {
     try {
-      await createProject({ name, description });
-      await fetchProjects();
-      return true;
+      if (createProjectFn) {
+        await createProjectFn({ name, description });
+        if (fetchProjectsFn) {
+          await fetchProjectsFn();
+        }
+        return true;
+      }
+      return false;
     } catch (error) {
       console.error('Error creating project:', error);
       throw error;
     }
-  }, [createProject, fetchProjects]);
+  }, [createProjectFn, fetchProjectsFn]);
 
   const handleDeleteProject = useCallback(async (projectId: string) => {
     try {
-      await deleteProject(projectId);
-      // Si el proyecto eliminado es el seleccionado, volver a "Todas las tareas"
-      const selectedId = typeof selectedProject === 'string' ? selectedProject : selectedProject?.id;
-      if (selectedId === projectId) {
-        setSelectedProject(null);
+      if (deleteProjectFn) {
+        await deleteProjectFn(projectId);
+        // Si el proyecto eliminado es el seleccionado, volver a "Todas las tareas"
+        const selectedId = typeof selectedProject === 'string' ? selectedProject : selectedProject?.id;
+        if (selectedId === projectId) {
+          setSelectedProject(null);
+        }
+        if (fetchProjectsFn) {
+          await fetchProjectsFn();
+        }
       }
-      await fetchProjects();
     } catch (error) {
       console.error('Error deleting project:', error);
       throw error;
     }
-  }, [deleteProject, fetchProjects, selectedProject]);
+  }, [deleteProjectFn, fetchProjectsFn, selectedProject]);
 
   useEffect(() => {
     if (selectedProject) {
@@ -165,10 +172,6 @@ export default function TasksPage() {
     setEditingTask(task);
   }, []);
 
-  const handleCreateTask = useCallback((status: TaskStatus) => {
-    setNewTaskStatus(status);
-    setIsNewTaskModalOpen(true);
-  }, []);
 
   const handleUpdateTask = useCallback(async (updates: {
     title?: string;
@@ -246,11 +249,8 @@ export default function TasksPage() {
       const taskToDelete = tasks.find((t: Task) => t.id === taskId);
       if (!taskToDelete) return false;
       
-      // Guardar la tarea eliminada temporalmente para posible recuperación
-      setDeletedTasks((prev: Record<string, Task>) => ({
-        ...prev,
-        [taskId]: taskToDelete
-      }));
+      // No es necesario mantener un registro de tareas eliminadas
+      console.log('Tarea eliminada temporalmente:', taskId);
       
       if (deleteTask) {
         await deleteTask(taskId);
@@ -280,7 +280,7 @@ export default function TasksPage() {
 
   const handleCreateTaskSubmit = useCallback(async (taskData: {
     title: string;
-    description?: string | null;
+    description?: string;
     priority: TaskPriority;
     dueDate?: Date | string | null;
     tags?: string[];
@@ -295,7 +295,7 @@ export default function TasksPage() {
         status: TaskStatus;
         projectId?: string;
         tags: string[];
-        dueDate?: string;
+        dueDate?: Date;
       } = {
         title: taskData.title,
         description: taskData.description || undefined,
@@ -307,16 +307,13 @@ export default function TasksPage() {
       
       // Formatear la fecha de vencimiento si existe
       if (taskData.dueDate) {
-        if (taskData.dueDate instanceof Date) {
-          taskInput.dueDate = taskData.dueDate;
-        } else if (typeof taskData.dueDate === 'string') {
-          // Convertir string a Date
-          const date = new Date(taskData.dueDate);
-          if (!isNaN(date.getTime())) {
-            taskInput.dueDate = date;
-          }
+        const dueDate = taskData.dueDate instanceof Date 
+          ? taskData.dueDate 
+          : new Date(taskData.dueDate);
+          
+        if (!isNaN(dueDate.getTime())) {
+          taskInput.dueDate = dueDate;
         }
-        // Si no es una fecha válida, no se asigna dueDate
       }
       
       const newTask = await createTask(taskInput);
@@ -448,7 +445,15 @@ export default function TasksPage() {
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
         onCreateProject={handleCreateProject}
-        projects={projects as any} // Type assertion since we're not using subProjects/tasks in the modal
+        projects={projects.map(p => ({
+          ...p,
+          type: ProjectType.MAIN,
+          status: 'ACTIVE' as const,
+          owner: '',
+          parentProjectId: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }))}
         onSelectProject={(projectId) => {
           const project = projects.find(p => p.id === projectId) || null;
           setSelectedProject(project);

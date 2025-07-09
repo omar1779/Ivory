@@ -1,21 +1,24 @@
 'use client';
 
-import { useState, useCallback, useEffect} from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../../amplify/data/resource';
 import { 
   Project, 
-  ProjectType, 
-  ProjectWithTasksAndSubProjects 
+  ProjectWithTasksAndSubProjects,
+  ProjectType 
 } from '@/lib/types/project';
+import { Task, TaskStatus, TaskPriority } from '@/lib/types/task';
 import { useAmplify } from '@/provider/AmplifyProvider';
+
+type AmplifyClient = ReturnType<typeof generateClient<Schema>>;
 
 export function useProjects() {
   const { initialized } = useAmplify();
   const [projects, setProjects] = useState<ProjectWithTasksAndSubProjects[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [client, setClient] = useState<any>(null);
+  const [client, setClient] = useState<AmplifyClient | null>(null);
 
   // Inicializar el cliente de datos de Amplify
   useEffect(() => {
@@ -49,11 +52,19 @@ export function useProjects() {
       }
 
       // Convertir los proyectos a ProjectWithTasksAndSubProjects
-      const allProjects = result.data.map((project: any) => ({
-        ...project,
+      const allProjects = result.data.map((project: Schema['Project']['type']) => ({
+        id: project.id,
+        name: project.name || 'Sin nombre',
+        description: project.description || '',
+        parentProjectId: project.parentProjectId || null,
+        type: 'type' in project ? (project as { type?: ProjectType }).type as ProjectType : ProjectType.MAIN,
+        status: (project.status as 'ACTIVE' | 'ARCHIVED') || 'ACTIVE',
+        owner: project.owner || '',
+        createdAt: project.createdAt || new Date().toISOString(),
+        updatedAt: project.updatedAt || new Date().toISOString(),
         tasks: [],
         subProjects: []
-      }));
+      } as ProjectWithTasksAndSubProjects));
       
       // Ordenar los proyectos por jerarquía
       const rootProjects = allProjects.filter((p: Project) => !p.parentProjectId);
@@ -92,23 +103,18 @@ export function useProjects() {
       console.log('Creando proyecto con datos:', projectData);
       
       // Solo incluimos los campos que están definidos en el esquema
-      const projectInput: Record<string, any> = {
+      const projectInput = {
         name: projectData.name,
+        status: 'ACTIVE' as const,
+        type: (projectData.parentProjectId ? ProjectType.SUB : ProjectType.MAIN) as 'MAIN' | 'SUB',
+        description: projectData.description || '',
+        parentProjectId: projectData.parentProjectId || null,
       };
-
-      // Agregamos campos opcionales solo si tienen valor
-      if (projectData.description) {
-        projectInput.description = projectData.description;
-      }
-      
-      if (projectData.parentProjectId) {
-        projectInput.parentProjectId = projectData.parentProjectId;
-      }
 
       console.log('Input del proyecto:', JSON.stringify(projectInput, null, 2));
 
       // Usamos el cliente directamente sin configurar authMode ya que eso ya está manejado por el proveedor
-      const { data: newProject, errors } = await client.models.Project.create(projectInput);
+      const { data: newProject, errors } = await client.models.Project.create(projectInput as Parameters<typeof client.models.Project.create>[0]);
 
       console.log('Respuesta de la API:', { newProject, errors });
 
@@ -151,11 +157,48 @@ export function useProjects() {
         filter: { projectId: { eq: projectId } }
       });
 
-      return {
-        ...projectResult.data,
-        tasks: tasksResult.data || [],
-        subProjects: []
-      } as ProjectWithTasksAndSubProjects;
+      // Get the actual data from the query results
+      const projectData = projectResult.data;
+      
+      // Create a properly typed project object
+      const formattedProject: ProjectWithTasksAndSubProjects = {
+        id: projectData.id,
+        name: projectData.name || 'Sin nombre',
+        description: projectData.description || '',
+        parentProjectId: projectData.parentProjectId || null,
+        // Use type assertion with a fallback to MAIN
+        type: ('type' in projectData ? (projectData as { type?: ProjectType }).type : ProjectType.MAIN) ?? ProjectType.MAIN,
+        status: projectData.status as 'ACTIVE' | 'ARCHIVED' || 'ACTIVE',
+        createdAt: projectData.createdAt || new Date().toISOString(),
+        updatedAt: projectData.updatedAt || new Date().toISOString(),
+        owner: projectData.owner || '',
+        tasks: tasksResult.data?.map(taskData => {
+          // Safely extract all task properties with proper types and fallbacks
+          const task: Task = {
+            id: taskData.id,
+            title: taskData.title || 'Sin título',
+            description: taskData.description || '',
+            status: (taskData.status as TaskStatus) || 'PENDING',
+            priority: (taskData.priority as TaskPriority) || TaskPriority.MEDIUM,
+            dueDate: taskData.dueDate || null,
+            projectId: taskData.projectId || null,
+            owner: taskData.owner || '',
+            createdAt: taskData.createdAt || new Date().toISOString(),
+            updatedAt: taskData.updatedAt || new Date().toISOString(),
+            tags: Array.isArray(taskData.tags) 
+              ? taskData.tags.filter((tag): tag is string => typeof tag === 'string' && tag !== null) 
+              : [],
+            completedAt: 'completedAt' in taskData ? (taskData as { completedAt?: string | null }).completedAt ?? null : null,
+            estimatedHours: 'estimatedHours' in taskData ? (taskData as { estimatedHours?: number | null }).estimatedHours ?? null : null,
+            actualHours: 'actualHours' in taskData ? (taskData as { actualHours?: number | null }).actualHours ?? null : null,
+            assignedTo: 'assignedTo' in taskData ? (taskData as { assignedTo?: string | null }).assignedTo ?? null : null,
+          };
+          return task;
+        }) || [],
+        subProjects: [] // Initialize as empty, can be populated if needed
+      };
+
+      return formattedProject;
     } catch (err) {
       console.error('Error al obtener proyecto con tareas:', err);
       return null;

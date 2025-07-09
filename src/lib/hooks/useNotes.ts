@@ -35,7 +35,7 @@ export function useNotes(folder?: string): UseNotesReturn {
   const client = generateClient<Schema>();
   const { showSuccess, showError, showSuccessWithUndo } = useNotification();
 
-  const formatNote = (note: NoteModel): Note => {
+  const formatNote = useCallback((note: NoteModel): Note => {
     if (!note.id) throw new Error('La nota debe tener un ID');
     
     return {
@@ -50,27 +50,27 @@ export function useNotes(folder?: string): UseNotesReturn {
       createdAt: note.createdAt || new Date().toISOString(),
       updatedAt: note.updatedAt || new Date().toISOString(),
     };
-  };
+  }, []);
 
   const fetchNotes = useCallback(async () => {
     try {
       setLoading(true);
-      const { data: notes, errors } = await client.models.Note.list({
+      const { data: notesData, errors } = await client.models.Note.list({
         filter: folder ? { folder: { eq: folder } } : undefined,
         authMode: 'userPool',
       });
+      if (errors) throw new Error(errors[0].message);
       
-      if (errors) throw errors;
-      
-      const formattedNotes = (notes || []).map(formatNote);
+      const formattedNotes = notesData.map(formatNote);
       setNotes(formattedNotes);
     } catch (err) {
-      console.error('Error al cargar las notas:', err);
+      console.error('Error fetching notes:', err);
       setError(err instanceof Error ? err : new Error('Error al cargar las notas'));
+      showError('Error al cargar las notas');
     } finally {
       setLoading(false);
     }
-  }, [folder]);
+  }, [folder, client, formatNote, setNotes, showError]);
 
   const createNote = useCallback(async (input: Omit<NoteInput, 'id' | 'createdAt' | 'updatedAt'>): Promise<Note> => {
     try {
@@ -123,7 +123,8 @@ export function useNotes(folder?: string): UseNotesReturn {
           'Nota eliminada correctamente',
           async () => {
             if (noteToDelete) {
-              const { id: _, ...noteData } = noteToDelete;
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { id, ...noteData } = noteToDelete;
               await createNote(noteData);
             }
           },
@@ -143,13 +144,14 @@ export function useNotes(folder?: string): UseNotesReturn {
   );
 
   const updateNote = useCallback(
-    async (id: string, updates: Partial<Note>) => {
+    async (id: string, updates: Partial<NoteInput>): Promise<Note | null> => {
+      if (!client) return null;
+
       try {
         const { data: updatedNote, errors } = await client.models.Note.update({
           id,
           ...updates,
         });
-
         if (errors) throw errors;
         if (!updatedNote) return null;
 
@@ -170,7 +172,7 @@ export function useNotes(folder?: string): UseNotesReturn {
         return null;
       }
     },
-    [client, showSuccess, showError]
+    [client, formatNote, showSuccess, showError]
   );
 
   const togglePin = useCallback(async (noteId: string, isPinned: boolean): Promise<Note | null> => {
@@ -198,7 +200,7 @@ export function useNotes(folder?: string): UseNotesReturn {
       setError(err instanceof Error ? err : new Error('Error al actualizar la nota'));
       return null;
     }
-  }, [client]);
+  }, [client, formatNote, setNotes]);
 
   // Cargar notas al montar el componente o cuando cambia el folder
   useEffect(() => {

@@ -3,7 +3,7 @@
 import { Note } from '@/lib/types/note';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { FileText, Pin, Tag as TagIcon, Folder, Search, PinOff, Plus } from 'lucide-react';
+import { FileText, Pin, Folder, Search, PinOff, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { useNotes } from '@/lib/hooks/useNotes';
 import NotesList from '@/components/notes/NotesList';
 import NoteEditor from '@/components/notes/NoteEditor';
@@ -11,7 +11,7 @@ import { Plus, FileText } from 'lucide-react';
 import ExportToPDF from '@/components/notes/ExportToPDF';
 
 export default function NotesPage() {
-  const router = useRouter();
+
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [currentFolder, setCurrentFolder] = useState<string | undefined>(undefined);
   
@@ -21,8 +21,7 @@ export default function NotesPage() {
     createNote, 
     updateNote, 
     deleteNote,
-    togglePin,
-    refresh: refreshNotes
+    togglePin
   } = useNotes(currentFolder);
 
   // Extraer carpetas únicas de las notas
@@ -54,16 +53,26 @@ export default function NotesPage() {
         console.log('Nota creada exitosamente:', newNote);
         setSelectedNote(newNote);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al crear la nota:', error);
+      
       // Mostrar un mensaje de error al usuario
-      alert('No se pudo crear la nota. Por favor, asegúrate de haber iniciado sesión.');
-      // Redirigir al login si hay un error de autenticación
-      if (error?.errors?.[0]?.errorType === 'Unauthorized' || 
-          error?.message?.includes('No current user') ||
-          error?.name === 'NotAuthorizedException') {
-        window.location.href = '/login';
+      let errorMessage = 'Error desconocido';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        // Redirigir al login si hay un error de autenticación
+        if (error.message.includes('No current user') || 
+            error.name === 'NotAuthorizedException') {
+          console.log('Redirigiendo a login...');
+          // router.push('/login');
+          window.location.href = '/login';
+          return;
+        }
       }
+      
+      alert(`No se pudo crear la nota: ${errorMessage}`);
     }
   };
 
@@ -137,8 +146,7 @@ export default function NotesPage() {
           <div className="flex flex-col h-full">
             <div className="border-b border-gray-200 dark:border-gray-700 p-2 flex justify-end bg-white dark:bg-gray-800">
               <ExportToPDF
-                content={selectedNote.content}
-                title={selectedNote.title || 'nota-sin-titulo'}
+                note={selectedNote}
                 variant="ghost"
                 size="sm"
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"

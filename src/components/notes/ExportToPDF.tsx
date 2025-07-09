@@ -2,237 +2,305 @@ import React, { useCallback } from 'react';
 import { Button } from '../ui/button';
 import { Download } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+
+// Configuración de marked para parseo seguro de markdown
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
+import { Note } from '@/lib/types/note';
+
+// Función para convertir HTML a texto plano con formato mejorado
+const htmlToPlainText = (html: string): string => {
+  // Crear un elemento temporal para parsear el HTML
+  const temp = document.createElement('div');
+  
+  // Usar DOMPurify para limpiar el HTML
+  temp.innerHTML = DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'p', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li'],
+    KEEP_CONTENT: true
+  });
+
+  // Función para recorrer el DOM y extraer el texto con formato
+  const getText = (node: ChildNode, output: string[] = []) => {
+    // Si es un nodo de texto, agregar su contenido
+    if (node.nodeType === Node.TEXT_NODE) {
+      output.push(node.textContent || '');
+    } 
+    // Si es un elemento, procesar sus hijos
+    else if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as HTMLElement;
+      const tagName = element.tagName.toLowerCase();
+      
+      // Agregar saltos de línea antes de ciertos elementos
+      if (['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'br'].includes(tagName)) {
+        output.push('\n');
+      }
+      
+      // Procesar hijos
+      for (let i = 0; i < node.childNodes.length; i++) {
+        getText(node.childNodes[i], output);
+      }
+      
+      // Agregar saltos de línea después de ciertos elementos
+      if (['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li'].includes(tagName)) {
+        output.push('\n');
+      }
+    }
+    
+    return output;
+  };
+
+  // Obtener el texto con formato
+  let result = getText(temp).join('');
+  
+  // Limpiar múltiples saltos de línea
+  result = result.replace(/\n{3,}/g, '\n\n');
+  
+  // Mantener los emojis y caracteres especiales
+  result = result
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .trim();
+
+  return result;
+};
 
 interface ExportToPDFProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  content: string;
-  title?: string;
-  buttonText?: string;
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-  size?: 'default' | 'sm' | 'lg' | 'icon';
+  note: Note;
+  buttonText?: string
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline'
+  size?: 'sm' | 'md' | 'lg' | 'icon';
 }
 
 const ExportToPDF: React.FC<ExportToPDFProps> = ({ 
-  content, 
-  title = 'Nota', 
+  note,
   buttonText,
   variant = 'outline',
   size = 'icon',
   ...props 
 }) => {
-  // Function to clean CSS content by removing unsupported functions
-  const cleanCSS = useCallback((css: string): string => {
-    if (!css) return '';
-    
-    // Remove @supports blocks that might contain modern CSS
-    let cleaned = css.replace(/@supports[^{]*\{[^}]*\}/g, '');
-    
-    // Remove modern color functions and replace with fallbacks
-    const colorReplacements = [
-      { regex: /oklch\([^)]+\)/g, replacement: 'rgb(128, 128, 128)' },
-      { regex: /color\([^)]+\)/g, replacement: 'rgb(128, 128, 128)' },
-      { regex: /lab\([^)]+\)/g, replacement: 'rgb(128, 128, 128)' },
-      { regex: /lch\([^)]+\)/g, replacement: 'rgb(128, 128, 128)' },
-      { regex: /hwb\([^)]+\)/g, replacement: 'hsl(0, 0%, 50%)' },
-    ];
-    
-    colorReplacements.forEach(({ regex, replacement }) => {
-      cleaned = cleaned.replace(regex, replacement);
-    });
-    
-    return cleaned;
-  }, []);
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
 
-  const cleanElementStyles = useCallback((el: HTMLElement) => {
-    if (!el || !el.style) return;
-    
-    // Remove any problematic style properties
-    const style = el.style;
-    const styleProps = [
-      'background', 'background-color', 'color', 'border', 'border-color',
-      'box-shadow', 'text-shadow', 'outline', 'outline-color'
-    ];
-    
-    styleProps.forEach(prop => {
-      try {
-        const value = style.getPropertyValue(prop);
-        if (value && /oklch\(|color\(|lab\(|lch\(|hwb\(/i.test(value)) {
-          style.setProperty(prop, '', 'important');
-        }
-      } catch (e) {
-        // Ignore errors for unsupported properties
-      }
+  // Función para inicializar el documento PDF
+  const initializePdf = () => {
+    // Crear un nuevo documento PDF
+    const pdfDoc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+      compress: true,
+      putOnlyUsedFonts: true,
+      hotfixes: ['px_scaling']
     });
     
-    // Process child elements
-    Array.from(el.children).forEach(child => cleanElementStyles(child as HTMLElement));
-  }, []);
+    // Usar una fuente que soporte mejor los caracteres Unicode
+    pdfDoc.setFont('helvetica');
+    pdfDoc.setFontSize(12);
+    
+    return pdfDoc;
+  };
 
   const handleExport = useCallback(async () => {
-    // Create a temporary container for the markdown content
-    const element = document.createElement('div');
+    // Mostrar indicador de carga
+    const button = document.activeElement as HTMLElement;
+    const originalText = button?.textContent;
+    
+    if (button) {
+      button.textContent = 'Generando PDF...';
+      button.setAttribute('disabled', 'true');
+    }
     
     try {
-      // Convert markdown to HTML
-      const markdownContent = content || 'No content';
-      const htmlContent = await Promise.resolve(marked.parse(markdownContent));
+      // Usar setTimeout para liberar el hilo principal
+      await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Clean HTML
-      let cleanHtml = DOMPurify.sanitize(htmlContent);
-      element.style.position = 'absolute';
-      element.style.left = '-9999px';
-      element.style.width = '800px';
-      element.style.padding = '40px';
-      element.style.fontFamily = 'Arial, sans-serif';
-      element.style.lineHeight = '1.6';
-      element.style.color = '#333';
-      element.style.backgroundColor = 'white';
-      element.style.borderRadius = '8px';
-      element.style.boxShadow = '0 0 10px rgba(0,0,0,0.1)';
+      // Inicializar el documento PDF
+      const doc = initializePdf();
       
-      // Add a meta tag to ensure proper rendering
-      const meta = document.createElement('meta');
-      meta.setAttribute('http-equiv', 'Content-Security-Policy');
-      meta.setAttribute('content', 'upgrade-insecure-requests');
+      // Configuración de la página
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 15;
+      let yPosition = 20;
+      const maxWidth = pageWidth - (margin * 2);
       
-      // Add title
-      const titleElement = document.createElement('h1');
-      titleElement.textContent = title;
-      titleElement.style.marginBottom = '20px';
-      titleElement.style.paddingBottom = '10px';
-      titleElement.style.borderBottom = '2px solid #eee';
-      element.appendChild(titleElement);
-
-      // Add content
-      const contentElement = document.createElement('div');
-      contentElement.innerHTML = cleanHtml;
-      contentElement.style.marginTop = '20px';
-      element.appendChild(contentElement);
-
-      // Add styles for markdown elements with cleaned CSS
-      const style = document.createElement('style');
-      const cssContent = `
-        h1 { font-size: 24px; margin: 20px 0; }
-        h2 { font-size: 20px; margin: 18px 0; }
-        h3 { font-size: 18px; margin: 16px 0; }
-        p { margin: 10px 0; }
-        ul, ol { margin: 10px 0; padding-left: 30px; }
-        li { margin: 5px 0; }
-        pre { 
-          background-color: #f5f5f5; 
-          padding: 15px; 
-          border-radius: 4px; 
-          overflow-x: auto; 
-          margin: 10px 0;
-          font-size: 14px;
-        }
-        code { 
-          font-family: 'Courier New', monospace; 
-          background-color: #f5f5f5; 
-          padding: 2px 4px; 
-          border-radius: 3px; 
-          font-size: 14px;
-        }
-        code[class*="language-"], pre[class*="language-"] {
-          font-size: 14px;
-          line-height: 1.5;
-        }
-        blockquote { 
-          border-left: 4px solid #ddd; 
-          padding: 0 15px; 
-          color: #666; 
-          margin: 15px 0; 
-          font-style: italic;
-        }
-        table {
-          border-collapse: collapse;
-          width: 100%;
-          margin: 15px 0;
-        }
-        th, td {
-          border: 1px solid #ddd;
-          padding: 8px 12px;
-          text-align: left;
-        }
-        th {
-          background-color: #f5f5f5;
-        }
-        img {
-          max-width: 100%;
-          height: auto;
-        }`;
-      
-      // Clean the CSS content and add to style element
-      style.textContent = cleanCSS(cssContent);
-      element.appendChild(style);
-
-      document.body.appendChild(element);
-
-      // Clean styles before rendering
-      cleanElementStyles(element);
-      
-      // Convert to canvas then to image with minimal configuration
-      const canvas = await html2canvas(element, {
-        scale: 2, // Higher quality
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        allowTaint: true,
-        ignoreElements: (el) => {
-          // Skip elements that might cause issues
-          if (el.tagName === 'IFRAME' || el.tagName === 'VIDEO' || el.tagName === 'AUDIO') {
-            return true;
+      // Función para agregar texto con manejo de saltos de página y estilos
+      const addText = (text: string, fontSize: number, isBold = false, isTitle = false) => {
+        if (!text) return;
+        
+        try {
+          // Configurar la fuente y estilo
+          const font = isBold ? 'helvetica-bold' : 'helvetica';
+          doc.setFont(font);
+          doc.setFontSize(fontSize);
+          
+          // Limpiar y normalizar el texto
+          const cleanText = String(text)
+            .normalize('NFC')
+            .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Caracteres de control
+            .replace(/[\u00A0\u1680\u2000-\u200F\u2028-\u202F\u205F\u2060\u3000\uFEFF]/g, ' ') // Espacios no estándar
+            .replace(/[\u2018\u2019]/g, "'") // Comillas simples
+            .replace(/[\u201C\u201D]/g, '"') // Comillas dobles
+            .replace(/\s+/g, ' ') // Múltiples espacios
+            .trim();
+          
+          // Dividir el texto en líneas que quepan en el ancho de la página
+          const splitText = doc.splitTextToSize(cleanText, maxWidth);
+          
+          // Agregar cada línea al PDF
+          for (const line of splitText) {
+            if (yPosition > doc.internal.pageSize.getHeight() - margin - 10) {
+              doc.addPage();
+              yPosition = margin;
+            }
+            
+            // Agregar la línea al PDF
+            doc.text(line, margin, yPosition);
+            
+            // Ajustar la posición Y para la siguiente línea
+            yPosition += isTitle ? 10 : 6 * (fontSize / 10);
           }
-          return false;
+          
+          // Espacio después del párrafo
+          yPosition += isTitle ? 8 : 4;
+          
+        } catch (error) {
+          console.error('Error al agregar texto:', error);
         }
-      });
+      };
 
-      // Create PDF
-      const imgData = canvas.toDataURL('image/png');
-      const pdfWidth = 210; // A4 width in mm
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      // Agregar encabezado con título
+      doc.setFontSize(20);
+      doc.setTextColor(40, 62, 80); // Color azul oscuro
+      addText(note.title || 'Nota sin título', 20, true, true);
       
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      // Agregar metadatos
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100); // Gris oscuro
+      addText(`Creada: ${formatDate(note.createdAt)}`, 10);
+      addText(`Actualizada: ${formatDate(note.updatedAt)}`, 10);
       
-      // Add the image with proper scaling
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+      if (note.folder) {
+        addText(`Carpeta: ${note.folder}`, 10);
+      }
       
-      // Clean up
-      document.body.removeChild(element);
+      if (note.tags?.length) {
+        addText(`Etiquetas: ${note.tags.join(', ')}`, 10);
+      }
       
-      // Save the PDF with a clean filename
-      const cleanTitle = (title || 'nota')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
+      // Línea separadora
+      yPosition += 5;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 15;
+
+      // Procesar el contenido de la nota
+      try {
+        const content = note.content || 'Sin contenido';
+        
+        // Convertir markdown a HTML y luego a texto plano
+        // Usar marked.parse con opciones para mantener caracteres especiales
+        const html = await marked.parse(content, {
+          gfm: true,
+          breaks: true
+        });
+        
+        // Limpiar y normalizar el texto
+        const plainText = htmlToPlainText(html)
+          .normalize('NFC') // Normalizar caracteres Unicode
+          .replace(/[\u00A0\u1680\u2000-\u200F\u2028-\u202F\u205F\u2060\u3000\uFEFF]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        
+        // Dividir en párrafos y procesar cada uno
+        const paragraphs = plainText.split(/\n{2,}/);
+        doc.setFontSize(12);
+        doc.setTextColor(30, 30, 30); // Color de texto principal
+        
+        for (let i = 0; i < paragraphs.length; i++) {
+          const paragraph = paragraphs[i].trim();
+          if (!paragraph) continue;
+          
+          // Procesar en bloques pequeños para mantener la interfaz receptiva
+          if (i % 5 === 0) {
+            await new Promise(resolve => setTimeout(resolve, 0));
+          }
+          
+          // Identificar títulos (líneas que terminan en dos puntos o tienen formato de encabezado)
+          if (paragraph.endsWith(':') || paragraph === paragraph.toUpperCase()) {
+            addText(paragraph, 14, true);
+          } else {
+            addText(paragraph, 12);
+          }
+        }
+      } catch (error) {
+        console.error('Error procesando contenido:', error);
+        addText('Error al procesar el contenido de la nota.', 12);
+      }
       
-      pdf.save(`${cleanTitle}.pdf`);
+      // Generar nombre de archivo seguro
+      const safeTitle = (note.title || 'nota')
+        .normalize('NFD')
+        .replace(/[^\w\s]/g, '')
+        .replace(/\s+/g, '_')
+        .substring(0, 30)
+        .toLowerCase();
+      
+      // Guardar el PDF
+      try {
+        doc.save(`${safeTitle}.pdf`);
+      } catch (error) {
+        console.error('Error al guardar PDF:', error);
+        // Método alternativo de guardado
+        const blob = doc.output('blob');
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${safeTitle}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
     } catch (error) {
-      console.error('Error al exportar a PDF:', error);
-      // Optionally show an error message to the user
-      alert('No se pudo exportar el PDF. Por favor, inténtalo de nuevo.');
+      console.error('Error generating PDF:', error);
+      alert('Error al generar el PDF. Por favor, inténtalo de nuevo.');
     } finally {
-      // Ensure we clean up the temporary element
-      if (element && element.parentNode) {
-        document.body.removeChild(element);
+      // Restaurar el estado del botón
+      if (button) {
+        button.textContent = originalText;
+        button.removeAttribute('disabled');
       }
     }
-  }, [content, title, cleanCSS]);
+  }, [note]);
 
   return (
-    <Button
+    <Button 
+      variant={variant}
+      size={size}
       onClick={handleExport}
-      variant={"outline"}
-      size={"sm"}
       title="Exportar a PDF"
-      className={`flex items-center justify-center ${props.className || ''}`}
+      aria-label="Exportar a PDF"
       {...props}
     >
-      <Download className="h-4 w-4" />
-      {buttonText && buttonText.length > 0 && (
-        <span className="ml-2">{buttonText}</span>
+      {buttonText ? (
+        <span className="flex items-center">
+          <Download className="mr-2 h-4 w-4" />
+          {buttonText}
+        </span>
+      ) : (
+        <Download className="h-4 w-4" />
       )}
     </Button>
   );

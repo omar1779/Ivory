@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Inter } from 'next/font/google';
 import "./globals.css";
 import { AmplifyProvider } from "../provider/AmplifyProvider";
 import { NotificationProvider } from '@/components/ui/NotificationProvider';
@@ -18,7 +17,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: "Ivory",
@@ -36,7 +34,7 @@ export default function RootLayout({
         <AmplifyProvider>
           <NotificationProvider>
             <Header />
-            <main className="flex-1 overflow-hidden">
+            <main className="flex-1">
               {children}
             </main>
             <ToastNotifications />

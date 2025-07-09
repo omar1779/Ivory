@@ -66,7 +66,7 @@ export function useTasks(projectId?: string) {
 
     try {
       console.log('Creando tarea:', taskData);
-      const taskInput: any = {
+      const taskInput: Omit<Parameters<typeof client.models.Task.create>[0], 'id'> = {
         title: taskData.title,
         description: taskData.description,
         priority: taskData.priority,

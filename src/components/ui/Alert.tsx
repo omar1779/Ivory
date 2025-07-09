@@ -5,7 +5,6 @@ import {
   FaExclamationTriangle, 
   FaInfoCircle,
   FaUndo,
-  FaTrash,
   FaEye
 } from 'react-icons/fa';
 

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { TaskStatus, TaskPriority } from '@/lib/types/task';
-import { Project } from '@/lib/types/project';
 import { XMarkIcon, TagIcon } from '@heroicons/react/24/outline';
 import { useProjects } from '@/lib/hooks/useProjects';
 import { useNotification } from '@/components/ui/NotificationProvider';
@@ -29,7 +28,7 @@ export default function NewTaskModal({ open, onClose, onCreate }: NewTaskModalPr
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
-  const { projects, loading: projectsLoading } = useProjects();
+  const { projects } = useProjects();
 
   const { showSuccess, showError } = useNotification();
 

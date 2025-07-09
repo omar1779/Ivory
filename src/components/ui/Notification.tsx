@@ -1,11 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { FaTimes } from 'react-icons/fa';
+import { useCallback, useEffect, useState } from 'react';
 import { 
   Alert, 
   type AlertVariant, 
-  type AlertAction,
   SuccessAlert,
   ErrorAlert 
 } from './Alert';
@@ -40,18 +38,18 @@ export function Notification({
 }: NotificationProps) {
   const [isVisible, setIsVisible] = useState(true);
 
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    setTimeout(onClose, 300); // Wait for animation to finish
+  }, [onClose]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       handleClose();
     }, duration);
 
     return () => clearTimeout(timer);
-  }, [duration]);
-
-  const handleClose = () => {
-    setIsVisible(false);
-    setTimeout(onClose, 300); // Wait for animation to finish
-  };
+  }, [duration, handleClose]);
 
   if (!isVisible) return null;
 

@@ -49,10 +49,6 @@ export default function NoteEditor({ note, onSave, onCancel, isSaving = false, f
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onSave({ title, content, tags, folder });

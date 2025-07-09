@@ -4,7 +4,6 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { TaskStatus, Task } from '@/lib/types/task';
 import TaskCard from './TaskCard';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { useNotification } from '../ui/NotificationProvider';
 
 interface TaskBoardProps {
   tasks: Task[];

@@ -26,11 +26,12 @@ export interface Task {
   priority: TaskPriority;
   dueDate?: string | null;
   projectId?: string | null;
+  owner: string;
+  createdAt: string;
+  updatedAt: string;
   assignedTo?: string | null;
   tags: string[];
+  completedAt?: string | null;
   estimatedHours?: number | null;
   actualHours?: number | null;
-  createdAt?: string | null;
-  updatedAt?: string | null;
-  owner?: string;
 }

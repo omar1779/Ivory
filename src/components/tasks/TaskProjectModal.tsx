@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Project } from '@/lib/types/project';
-import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { TrashIcon } from '@heroicons/react/24/outline';
 import { useNotification } from '@/components/ui/NotificationProvider';
 
 export function TaskProjectModal({
@@ -61,7 +61,6 @@ export function TaskProjectModal({
     
     try {
       setIsDeleting(true);
-      // @ts-ignore - La función onDeleteProject se añadirá como prop
       await onDeleteProject?.(projectId);
       
       // Mostrar notificación con opción de deshacer

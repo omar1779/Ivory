@@ -1,7 +1,6 @@
 "use client";
 
-import { getCurrentUser, signOut } from "@aws-amplify/auth";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAmplify } from "@/provider/AmplifyProvider";
 import Image from "next/image";
