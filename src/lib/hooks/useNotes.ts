@@ -1,8 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../../amplify/data/resource';
 import { Note, NoteInput } from '@/lib/types/note';
 import { useNotification } from '@/components/ui/NotificationProvider';
+
+// Establecer el cliente fuera del hook para mantener una única instancia
+const client = generateClient<Schema>();
 
 type NoteModel = {
   id: string;
@@ -32,8 +35,11 @@ export function useNotes(folder?: string): UseNotesReturn {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const client = generateClient<Schema>();
   const { showSuccess, showError, showSuccessWithUndo } = useNotification();
+  
+  // Usar una referencia para el folder actual
+  const folderRef = useRef(folder);
+  folderRef.current = folder;
 
   const formatNote = useCallback((note: NoteModel): Note => {
     if (!note.id) throw new Error('La nota debe tener un ID');
@@ -51,128 +57,160 @@ export function useNotes(folder?: string): UseNotesReturn {
       updatedAt: note.updatedAt || new Date().toISOString(),
     };
   }, []);
-
+  
+  // Usar useRef para mantener una referencia estable a fetchNotes
   const fetchNotes = useCallback(async () => {
     try {
       setLoading(true);
+      const currentFolder = folderRef.current;
       const { data: notesData, errors } = await client.models.Note.list({
-        filter: folder ? { folder: { eq: folder } } : undefined,
+        filter: currentFolder ? { folder: { eq: currentFolder } } : undefined,
         authMode: 'userPool',
       });
-      if (errors) throw new Error(errors[0].message);
       
-      const formattedNotes = notesData.map(formatNote);
+      if (errors && errors.length > 0) {
+        throw new Error(errors[0].message || 'Error al cargar las notas');
+      }
+      
+      const formattedNotes = Array.isArray(notesData) 
+        ? notesData.map(note => formatNote(note))
+        : [];
+        
       setNotes(formattedNotes);
     } catch (err) {
       console.error('Error fetching notes:', err);
-      setError(err instanceof Error ? err : new Error('Error al cargar las notas'));
-      showError('Error al cargar las notas');
+      const error = err instanceof Error ? err : new Error('Error al cargar las notas');
+      setError(error);
+      showError(error.message);
     } finally {
       setLoading(false);
     }
-  }, [folder, client, formatNote, setNotes, showError]);
+  }, [formatNote, showError]);
 
   const createNote = useCallback(async (input: Omit<NoteInput, 'id' | 'createdAt' | 'updatedAt'>): Promise<Note> => {
     try {
-      // El campo owner será manejado automáticamente por Cognito a través de las reglas de autorización
       const { data: createdNote, errors } = await client.models.Note.create(
         {
-          title: input.title,
-          content: input.content,
+          title: input.title || 'Sin título',
+          content: input.content || '',
           folder: input.folder || '',
-          tags: input.tags || [],
-          isPinned: input.isPinned || false,
-          isArchived: input.isArchived || false,
+          tags: input.tags?.filter(Boolean) || [],
+          isPinned: Boolean(input.isPinned),
+          isArchived: Boolean(input.isArchived),
         },
         { authMode: 'userPool' }
       );
 
-      if (errors || !createdNote) {
-        throw errors || new Error('No se pudo crear la nota');
+      if (errors?.length) {
+        throw new Error(errors[0].message || 'No se pudo crear la nota');
+      }
+
+      if (!createdNote) {
+        throw new Error('No se recibió respuesta al crear la nota');
       }
 
       const newNote = formatNote(createdNote);
+      
+      // Actualizar el estado de manera óptima
       setNotes(prevNotes => [...prevNotes, newNote]);
       
       showSuccess('Nota creada correctamente');
       return newNote;
     } catch (err) {
-      console.error('Error al crear la nota:', err);
-      setError(err instanceof Error ? err : new Error('Error al crear la nota'));
-      showError('Error al crear la nota');
-      throw err; // Re-lanzar el error para que el componente pueda manejarlo si es necesario
+      const error = err instanceof Error ? err : new Error('Error al crear la nota');
+      console.error('Error al crear la nota:', error);
+      setError(error);
+      showError(error.message);
+      throw error;
     }
-  }, [client, formatNote, setNotes, showSuccess, showError]);
+  }, [formatNote, showSuccess, showError]);
 
   const deleteNote = useCallback(
     async (id: string) => {
       try {
-        const noteToDelete = notes.find(note => note.id === id);
-        
-        const { data: deletedNote, errors } = await client.models.Note.delete({
-          id,
+        // Usar la función de actualización para evitar dependencia directa de notes
+        setNotes(prevNotes => {
+          const noteToDelete = prevNotes.find(note => note.id === id);
+          
+          // Iniciar la eliminación en segundo plano
+          client.models.Note.delete({ id })
+            .then(({ errors }) => {
+              if (errors?.length) {
+                throw new Error(errors[0].message || 'Error al eliminar la nota');
+              }
+              
+              if (noteToDelete) {
+                const undoDelete = async () => {
+                  try {
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    const { id: _, ...noteData } = noteToDelete;
+                    await createNote(noteData);
+                  } catch (undoError) {
+                    console.error('Error al deshacer eliminación:', undoError);
+                    showError('No se pudo recuperar la nota');
+                  }
+                };
+                
+                showSuccessWithUndo(
+                  'Nota eliminada correctamente',
+                  undoDelete,
+                  { title: 'Nota eliminada' }
+                );
+              }
+            })
+            .catch(err => {
+              const error = err instanceof Error ? err : new Error('Error al eliminar la nota');
+              console.error('Error al eliminar la nota:', error);
+              setError(error);
+              showError(error.message);
+            });
+            
+          // Retornar el estado actualizado inmediatamente
+          return prevNotes.filter(note => note.id !== id);
         });
-
-        if (errors) throw errors;
-        if (!deletedNote) return false;
-
-        setNotes((prev) => prev.filter((note) => note.id !== id));
-        
-        // Mostrar notificación con opción de deshacer
-        showSuccessWithUndo(
-          'Nota eliminada correctamente',
-          async () => {
-            if (noteToDelete) {
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const { id, ...noteData } = noteToDelete;
-              await createNote(noteData);
-            }
-          },
-          { title: 'Nota eliminada' }
-        );
         
         return true;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Error al eliminar la nota';
-        console.error('Error al eliminar la nota:', err);
-        setError(err instanceof Error ? err : new Error('Error al eliminar la nota'));
-        showError(errorMessage);
+        const error = err instanceof Error ? err : new Error('Error al eliminar la nota');
+        console.error('Error al eliminar la nota:', error);
+        setError(error);
+        showError(error.message);
         return false;
       }
     },
-    [client, notes, createNote, showSuccessWithUndo, showError]
+    [createNote, showSuccessWithUndo, showError]
   );
 
   const updateNote = useCallback(
     async (id: string, updates: Partial<NoteInput>): Promise<Note | null> => {
-      if (!client) return null;
-
       try {
         const { data: updatedNote, errors } = await client.models.Note.update({
           id,
           ...updates,
         });
-        if (errors) throw errors;
+        
+        if (errors?.length) {
+          throw new Error(errors[0].message || 'Error al actualizar la nota');
+        }
+        
         if (!updatedNote) return null;
 
         const formattedNote = formatNote(updatedNote);
-        setNotes((prev) =>
-          prev.map((note) => (note.id === id ? formattedNote : note))
-        );
+        setNotes(prev => prev.map(note => 
+          note.id === id ? formattedNote : note
+        ));
         
-        // Mostrar notificación de éxito
         showSuccess('Nota actualizada correctamente');
-        
         return formattedNote;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Error al actualizar la nota';
-        console.error('Error al actualizar la nota:', err);
-        setError(err instanceof Error ? err : new Error('Error al actualizar la nota'));
-        showError(errorMessage);
+        const error = err instanceof Error ? err : new Error('Error al actualizar la nota');
+        console.error('Error al actualizar la nota:', error);
+        setError(error);
+        showError(error.message);
         return null;
       }
     },
-    [client, formatNote, showSuccess, showError]
+    [formatNote, showSuccess, showError]
   );
 
   const togglePin = useCallback(async (noteId: string, isPinned: boolean): Promise<Note | null> => {
@@ -182,7 +220,10 @@ export function useNotes(folder?: string): UseNotesReturn {
         isPinned: !isPinned
       });
 
-      if (errors) throw errors;
+      if (errors?.length) {
+        throw new Error(errors[0].message || 'Error al actualizar la nota');
+      }
+      
       if (!updatedNote) return null;
 
       const formattedNote = formatNote(updatedNote);
@@ -200,22 +241,44 @@ export function useNotes(folder?: string): UseNotesReturn {
       setError(err instanceof Error ? err : new Error('Error al actualizar la nota'));
       return null;
     }
-  }, [client, formatNote, setNotes]);
+  }, [formatNote]);
 
-  // Cargar notas al montar el componente o cuando cambia el folder
+  // Cargar notas al montar el componente
   useEffect(() => {
-    fetchNotes();
+    const loadNotes = async () => {
+      await fetchNotes();
+    };
+    
+    loadNotes().catch(err => {
+      console.error('Error in loadNotes:', err);
+      setError(err instanceof Error ? err : new Error('Error al cargar las notas'));
+    });
+    
+    // Limpieza si es necesario
+    return () => {
+      // Aquí podrías cancelar peticiones pendientes si fuera necesario
+    };
   }, [fetchNotes]);
 
   // Ordenar notas: primero las ancladas, luego por fecha de actualización
   const sortedNotes = useMemo(() => {
+    if (!notes.length) return [];
+    
     return [...notes].sort((a, b) => {
-      // Si una está anclada y la otra no, la anclada va primero
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
+      // Primero por estado de anclado
+      if (a.isPinned !== b.isPinned) {
+        return a.isPinned ? -1 : 1;
+      }
       
-      // Si ambas están ancladas o ninguna, ordenar por fecha de actualización (más reciente primero)
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      // Luego por fecha de actualización (más reciente primero)
+      try {
+        const dateA = new Date(a.updatedAt).getTime();
+        const dateB = new Date(b.updatedAt).getTime();
+        return dateB - dateA;
+      } catch (error) {
+        console.error('Error al comparar fechas:', error);
+        return 0; // En caso de error en el formato de fecha
+      }
     });
   }, [notes]);
 

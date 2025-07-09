@@ -4,8 +4,9 @@ import { Note } from '@/lib/types/note';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { FileText, Pin, Folder, Search, PinOff, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
+import React from 'react';
 
 interface NotesListProps {
   notes: Note[];
@@ -33,15 +34,52 @@ export default function NotesList({
   const [searchQuery, setSearchQuery] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
-  const filteredNotes = notes.filter(note => {
-    const matchesSearch = searchQuery === '' || 
-      note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      note.content.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesFolder = !currentFolder || note.folder === currentFolder;
-    
-    return matchesSearch && matchesFolder;
-  });
+  const filteredNotes = useMemo(() => 
+    notes.filter(note => {
+      const matchesSearch = searchQuery === '' || 
+        (note.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (note.content?.toLowerCase() || '').includes(searchQuery.toLowerCase());
+      
+      const matchesFolder = !currentFolder || note.folder === currentFolder;
+      
+      return matchesSearch && matchesFolder;
+    }),
+    [notes, searchQuery, currentFolder]
+  );
+  
+  // Memoizar manejadores de eventos
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  }, []);
+  
+  const handleFolderClick = useCallback((folder: string | undefined) => {
+    onSelectFolder(folder);
+  }, [onSelectFolder]);
+  
+  const handleNoteClick = useCallback((note: Note) => {
+    onSelectNote(note);
+  }, [onSelectNote]);
+  
+  const handleTogglePin = useCallback((e: React.MouseEvent, noteId: string, isPinned: boolean) => {
+    e.stopPropagation();
+    onTogglePin(noteId, isPinned);
+  }, [onTogglePin]);
+  
+  const handleDeleteClick = useCallback((e: React.MouseEvent, noteId: string) => {
+    e.stopPropagation();
+    setShowDeleteConfirm(showDeleteConfirm === noteId ? null : noteId);
+  }, [showDeleteConfirm]);
+  
+  const handleConfirmDelete = useCallback((e: React.MouseEvent, noteId: string) => {
+    e.stopPropagation();
+    onDeleteNote(noteId);
+    setShowDeleteConfirm(null);
+  }, [onDeleteNote]);
+  
+  const handleCancelDelete = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeleteConfirm(null);
+  }, []);
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -54,14 +92,14 @@ export default function NotesList({
             type="text"
             placeholder="Buscar notas..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
             className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
           />
         </div>
         
         <div className="flex space-x-2 mb-4 overflow-x-auto pb-2 -mx-1 px-1">
           <button
-            onClick={() => onSelectFolder(undefined)}
+            onClick={() => handleFolderClick(undefined)}
             className={`px-3 py-1 text-sm rounded-full whitespace-nowrap ${
               !currentFolder 
                 ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100' 
@@ -73,7 +111,7 @@ export default function NotesList({
           {folders.map((folder) => (
             <button
               key={folder}
-              onClick={() => onSelectFolder(folder)}
+              onClick={() => handleFolderClick(folder)}
               className={`px-3 py-1 text-sm rounded-full whitespace-nowrap flex items-center ${
                 currentFolder === folder
                   ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100' 
@@ -118,7 +156,7 @@ export default function NotesList({
                 <div className="flex justify-between items-start">
                   <div 
                     className="flex-1 cursor-pointer"
-                    onClick={() => onSelectNote(note)}
+                    onClick={() => handleNoteClick(note)}
                   >
                     <h3 className="font-medium text-white truncate flex items-center">
                       {note.title || 'Sin título'}
@@ -128,10 +166,7 @@ export default function NotesList({
                     </h3>
                   </div>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onTogglePin(note.id, note.isPinned);
-                    }}
+                    onClick={(e) => handleTogglePin(e, note.id, note.isPinned)}
                     className="ml-2 p-1 rounded-full hover:bg-gray-600 text-gray-400 hover:text-yellow-400 transition-colors"
                     title={note.isPinned ? 'Desanclar' : 'Anclar'}
                   >
@@ -156,7 +191,7 @@ export default function NotesList({
                 
                 {(note.tags && note.tags.length > 0) && (
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {note.tags.slice(0, 3).map((tag) => (
+                    {note.tags.slice(0, 3).map((tag: string) => (
                       <span 
                         key={tag} 
                         className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-900/50 text-indigo-200"
@@ -178,10 +213,7 @@ export default function NotesList({
                     })}
                   </span>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowDeleteConfirm(showDeleteConfirm === note.id ? null : note.id);
-                    }}
+                    onClick={(e) => handleDeleteClick(e, note.id)}
                     className="text-red-400 hover:text-red-300 px-2 py-1 text-xs rounded hover:bg-red-900/30"
                   >
                     {showDeleteConfirm === note.id ? '¿Eliminar?' : 'Eliminar'}
@@ -191,20 +223,13 @@ export default function NotesList({
                 {showDeleteConfirm === note.id && (
                   <div className="flex justify-end space-x-2 mt-2">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteNote(note.id);
-                        setShowDeleteConfirm(null);
-                      }}
+                      onClick={(e) => handleConfirmDelete(e, note.id)}
                       className="text-xs px-2 py-1 bg-red-600 hover:bg-red-700 rounded"
                     >
                       Sí, eliminar
                     </button>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowDeleteConfirm(null);
-                      }}
+                      onClick={handleCancelDelete}
                       className="text-xs px-2 py-1 bg-gray-600 hover:bg-gray-500 rounded"
                     >
                       Cancelar
