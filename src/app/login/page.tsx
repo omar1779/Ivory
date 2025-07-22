@@ -68,7 +68,7 @@ export default function Login() {
 
   return (
     <>
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-gray-900">
+      <div className="flex min-h-screen flex-col justify-center px-6 py-12 lg:px-8 bg-gray-900">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <Image
             alt="Tu empresa"
@@ -108,7 +108,7 @@ export default function Login() {
                   Contraseña
                 </label>
                 <div className="text-sm">
-                  <a href="#" className="font-semibold text-indigo-400 hover:text-indigo-300">
+                  <a href="/reset-password" className="font-semibold text-indigo-400 hover:text-indigo-300">
                     ¿Olvidaste tu contraseña?
                   </a>
                 </div>
