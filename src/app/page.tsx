@@ -9,6 +9,7 @@ import {
 import { FaBolt, FaTasks, FaRegStickyNote, FaChartLine } from "react-icons/fa";
 import { FiChevronRight } from "react-icons/fi";
 import Link from "next/link";
+import PricingSection from "../components/PricingSection";
 
 const primaryFeatures = [
   {
@@ -458,7 +459,11 @@ export default function Home() {
             </div>
           </div>
         </div>
-      {/* Footer */}
+
+        {/* Pricing */}
+        <PricingSection />
+
+        {/* Footer */}
       <footer className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="border-t border-white/10 py-12 md:flex md:items-center md:justify-between">
           <div className="flex justify-center gap-x-6 md:order-2">

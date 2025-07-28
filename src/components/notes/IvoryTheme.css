@@ -1,0 +1,533 @@
+/* IvoryTheme.css */
+
+/* Editor Container */
+.editor-container {
+  margin: 0;
+  border-radius: 0.5rem;
+  width: 100%;
+  height: 100%;
+  color: #e2e8f0;
+  position: relative;
+  line-height: 1.5;
+  font-weight: 400;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Editor Inner */
+.editor-inner {
+  background: #0f172a; /* Dark navy blue to match the theme */
+  position: relative;
+  border-radius: 0.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+/* Editor Input */
+.editor-input {
+  min-height: 300px;
+  resize: none;
+  font-size: 16px;
+  position: relative;
+  tab-size: 1;
+  outline: 0;
+  padding: 20px;
+  caret-color: #4f94ef;
+  display: block; /* Ensure it's a block element to avoid column issues */
+  width: 100%; /* Full width of container */
+  color: #e2e8f0;
+  background: transparent;
+  flex: 1;
+}
+
+/* Placeholder */
+.editor-placeholder {
+  color: #64748b;
+  overflow: hidden;
+  position: absolute;
+  text-overflow: ellipsis;
+  top: 20px;
+  left: 20px;
+  font-size: 16px;
+  user-select: none;
+  display: inline-block;
+  pointer-events: none;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  padding: 8px 12px;
+  vertical-align: middle;
+  background-color: #1e293b; /* Darker blue for the toolbar */
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  overflow-x: auto;
+  border-bottom: 1px solid #334155;
+}
+
+/* Toolbar Button */
+.toolbar button.toolbar-item {
+  border: 0;
+  display: flex;
+  background: none;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  padding: 8px;
+  vertical-align: middle;
+  font-size: 14px;
+  color: #94a3b8;
+  margin-right: 4px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.toolbar button.toolbar-item:hover {
+  background-color: #334155;
+  color: #e2e8f0;
+}
+
+.toolbar button.toolbar-item.active {
+  background-color: #475569;
+  color: #ffffff;
+}
+
+.toolbar .divider {
+  width: 1px;
+  background-color: #334155;
+  margin: 0 8px;
+}
+
+/* Block formatting */
+.editor-text-bold {
+  font-weight: bold;
+}
+
+.editor-text-italic {
+  font-style: italic;
+}
+
+.editor-text-underline {
+  text-decoration: underline;
+}
+
+.editor-link {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+.editor-code {
+  background-color: #1e293b;
+  font-family: monospace;
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: #a5b4fc;
+}
+
+.editor-paragraph {
+  margin: 0;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.editor-heading-h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.editor-heading-h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.editor-list-ol {
+  padding: 0;
+  margin: 0;
+  margin-left: 16px;
+}
+
+.editor-list-ul {
+  padding: 0;
+  margin: 0;
+  margin-left: 16px;
+}
+
+.editor-listitem {
+  margin: 8px 32px;
+}
+
+.editor-quote {
+  margin: 0;
+  margin-left: 20px;
+  color: #94a3b8;
+  border-left: 4px solid #475569;
+  padding-left: 16px;
+}
+
+
+.editor-paragraph { display: block; white-space: normal; }
+
+.editor-heading-h1 {
+  font-size: 2rem; /* ~32px */
+  font-weight: 700;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.editor-heading-h2 {
+  font-size: 1.5rem; /* ~24px */
+  font-weight: 700;
+  margin: 0.75rem 0 0.5rem 0;
+}
+
+.editor-heading-h3 {
+  font-size: 1.25rem; /* ~20px */
+  font-weight: 600;
+  margin: 0.75rem 0 0.5rem 0;
+}
+
+.editor-text-bold {
+  font-weight: 700;
+}
+
+.editor-text-italic {
+  font-style: italic;
+}
+
+.editor-text-underline {
+  text-decoration: underline;
+}
+
+.editor-text-code {
+  font-family: monospace;
+  background: #f1f1f1;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.editor-list-ul {
+  list-style-type: disc;
+  margin-left: 1.5rem;
+}
+
+.editor-list-ol {
+  list-style-type: decimal;
+  margin-left: 1.5rem;
+}
+
+.editor-listitem {
+  margin: 0.25rem 0;
+}
+
+.editor-quote {
+  border-left: 4px solid #ccc;
+  padding-left: 1rem;
+  color: #555;
+  font-style: italic;
+  margin: 0.75rem 0;
+}
+
+.editor-code {
+  font-family: monospace;
+  background: #f9f9f9;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.editor-content p { margin: 0.5rem 0; line-height: 1.5; }
+
+.editor-link {
+  color: #3b82f6; /* blue-500 */
+  text-decoration: underline;
+}
+
+/* Floating Toolbar Styles */
+.floating-toolbar {
+  position: absolute;
+  background-color: #1e293b; /* Slate 800 */
+  border-radius: 6px;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+  display: flex;
+  padding: 6px;
+  z-index: 10;
+  transition: opacity 0.2s;
+}
+
+.floating-toolbar .toolbar-item {
+  background-color: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: #cbd5e1; /* Slate 300 */
+  cursor: pointer;
+  height: 30px;
+  width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 2px;
+}
+
+.floating-toolbar .toolbar-item:hover {
+  background-color: #334155; /* Slate 700 */
+}
+
+.floating-toolbar .toolbar-item.active {
+  background-color: #475569; /* Slate 600 */
+  color: #ffffff;
+}
+
+.floating-toolbar .divider {
+  width: 1px;
+  background-color: #475569; /* Slate 600 */
+  margin: 0 4px;
+}
+
+/* Comment Styles */
+.comments-container {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 250px;
+  max-height: 80%;
+  overflow-y: auto;
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  padding: 8px;
+  z-index: 10;
+  transition: width 0.3s, height 0.3s, opacity 0.3s;
+}
+
+.comments-container.comments-collapsed {
+  width: 200px;
+  max-height: 40px;
+  overflow: hidden;
+}
+
+.comments-header {
+  font-size: 14px;
+  color: #e2e8f0;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #334155;
+}
+
+.comments-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.comments-toggle-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.comments-toggle-btn:hover {
+  color: #e2e8f0;
+  background-color: #334155;
+}
+
+.comments-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #e2e8f0;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #334155;
+}
+
+.comment-item {
+  padding: 10px 15px;
+  border-bottom: 1px solid #334155;
+  cursor: pointer;
+}
+
+.comment-item:hover {
+  background-color: #0f172a;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.comment-header svg {
+  margin-right: 5px;
+}
+
+.comment-text {
+  color: #e2e8f0;
+  font-size: 14px;
+}
+
+.comment-modal {
+  position: absolute;
+  background-color: #1e293b;
+  border-radius: 6px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 300px;
+  z-index: 20;
+  overflow: hidden;
+}
+
+.comment-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: #0f172a;
+  color: #e2e8f0;
+  border-bottom: 1px solid #334155;
+}
+
+.comment-close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.comment-modal-body {
+  padding: 15px;
+}
+
+.comment-selection-text {
+  color: #94a3b8;
+  font-size: 14px;
+  font-style: italic;
+  margin-bottom: 10px;
+  word-break: break-word;
+}
+
+.comment-input {
+  width: 100%;
+  height: 80px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  border: 1px solid #334155;
+  background-color: #0f172a;
+  color: #e2e8f0;
+  font-size: 14px;
+  resize: none;
+  margin-bottom: 10px;
+}
+
+.comment-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.comment-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.comment-btn {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.comment-btn.cancel {
+  background-color: transparent;
+  border: 1px solid #475569;
+  color: #e2e8f0;
+}
+
+.comment-btn.save {
+  background-color: #3b82f6;
+  border: 1px solid #3b82f6;
+  color: white;
+}
+
+.comment-btn.save:disabled {
+  background-color: #475569;
+  border-color: #475569;
+  cursor: not-allowed;
+}
+
+/* Highlight style for commented text */
+.editor-text-highlight {
+  background-color: rgba(59, 130, 246, 0.2);
+  border-radius: 2px;
+}
+
+/* Drag & Drop Block Styles */
+.block-drag-handle {
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 100;
+  padding: 3px;
+  background-color: rgba(30, 41, 59, 0.8);
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  cursor: grab;
+  margin-left: -30px; /* Posicionar fuera del borde izquierdo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.editor-container:hover .editor-input p:hover .block-drag-handle,
+.editor-container .editor-input p:hover + .block-drag-handle {
+  opacity: 0.8;
+}
+
+.block-drag-handle:hover {
+  opacity: 1 !important;
+  background-color: rgba(30, 41, 59, 1);
+}
+
+.block-drag-area.dragging {
+  opacity: 0.6;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.drop-indicator {
+  height: 3px !important;
+  background-color: #3b82f6 !important;
+  z-index: 100 !important;
+  position: absolute;
+  left: 0 !important;
+  right: 0 !important;
+  pointer-events: none;
+  box-shadow: 0 0 4px rgba(59, 130, 246, 0.5);
+}
+
+/* Estilos para párrafos */
+.editor-container .editor-input p {
+  position: relative;
+  padding-left: 30px; /* Espacio para la manija de arrastre */
+  margin: 8px 0;
+  min-height: 1.5em;
+  transition: background-color 0.2s;
+}
+
+.editor-container .editor-input p:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+}

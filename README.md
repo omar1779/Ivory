@@ -93,6 +93,21 @@ Ivory es un SaaS de productividad enfocado en autodidactas y estudiantes. Su obj
 
 ### 🚧 Próximas Tareas
 
+#### Nueva Dirección: Plataforma centrada en Notas
+
+1. **Estructura de notas** – Carpetas/espacios de trabajo, etiquetas, backlinks y grafo visual.
+2. **Experiencia de edición** – Editor Markdown/WYSIWYG con adjuntos e imágenes arrastrables, historial de versiones.
+3. **Productividad y flujo de trabajo** – Conversión de checklist a tarea, plantillas reutilizables, resúmenes con IA.
+4. **Colaboración** – Comentarios en línea, permisos granulares y co-edición en tiempo real.
+5. **Multiplataforma & sincronización** – App móvil offline-first y API pública.
+6. **Monetización premium** – Límites en plan free y funciones avanzadas en planes pagos.
+
+##### Próximos pasos prioritarios
+- [ ] **A.** Mejorar editor a Markdown enriquecido con adjuntos.
+- [ ] **B.** Implementar etiquetas y búsqueda full-text en notas.
+- [ ] **C.** Permitir convertir checklist/heading en tarea vinculada al módulo de proyectos.
+
+
 #### Mejoras en la Visualización de Tareas
 - [ ] Mostrar etiqueta de proyecto en las tarjetas de tareas
   - [ ] Mostrar nombre del proyecto cuando se ven todas las tareas
