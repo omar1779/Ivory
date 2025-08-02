@@ -250,7 +250,7 @@ export default function TasksPage() {
       if (!taskToDelete) return false;
       
       // No es necesario mantener un registro de tareas eliminadas
-      console.log('Tarea eliminada temporalmente:', taskId);
+
       
       if (deleteTask) {
         await deleteTask(taskId);
@@ -261,7 +261,7 @@ export default function TasksPage() {
             title: 'Tarea eliminada',
             onUndo: () => {
               // Aquí podríamos implementar la recuperación de la tarea
-              console.log('Recuperar tarea:', taskToDelete);
+
             }
           });
         }
@@ -316,14 +316,14 @@ export default function TasksPage() {
         }
       }
       
-      const newTask = await createTask(taskInput);
+      await createTask(taskInput);
       
       // Mostrar notificación de éxito
       showSuccess(`Tarea "${taskData.title}" creada correctamente`, {
         title: 'Tarea creada',
         onView: () => {
           // Aquí podrías implementar la navegación a la tarea
-          console.log('Ver tarea creada:', newTask?.id);
+
         }
       });
       

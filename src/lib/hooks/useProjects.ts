@@ -35,7 +35,7 @@ export function useProjects() {
 
   const fetchProjects = useCallback(async () => {
     if (!client || !initialized) {
-      console.log('Cliente no disponible, esperando inicialización...');
+
       return;
     }
 
@@ -43,7 +43,7 @@ export function useProjects() {
       setLoading(true);
       setError(null);
       
-      console.log('Obteniendo proyectos...');
+
       const result = await client.models.Project.list();
       
       if (!result.data) {
@@ -79,7 +79,7 @@ export function useProjects() {
       });
 
       setProjects(projectsWithHierarchy);
-      console.log('Proyectos obtenidos:', projectsWithHierarchy.length);
+
     } catch (err) {
       console.error('Error al cargar proyectos:', err);
       setError(err instanceof Error ? err.message : 'Error al cargar proyectos');
@@ -100,7 +100,7 @@ export function useProjects() {
     }
 
     try {
-      console.log('Creando proyecto con datos:', projectData);
+
       
       // Solo incluimos los campos que están definidos en el esquema
       const projectInput = {
@@ -111,12 +111,12 @@ export function useProjects() {
         parentProjectId: projectData.parentProjectId || null,
       };
 
-      console.log('Input del proyecto:', JSON.stringify(projectInput, null, 2));
+
 
       // Usamos el cliente directamente sin configurar authMode ya que eso ya está manejado por el proveedor
       const { data: newProject, errors } = await client.models.Project.create(projectInput as Parameters<typeof client.models.Project.create>[0]);
 
-      console.log('Respuesta de la API:', { newProject, errors });
+
 
       if (errors && errors.length > 0) {
         const errorMessage = errors[0]?.message || 'Error desconocido al crear el proyecto';
@@ -128,7 +128,7 @@ export function useProjects() {
         throw new Error('No se recibió respuesta del servidor al crear el proyecto');
       }
 
-      console.log('Proyecto creado exitosamente:', newProject);
+
       
       // Recargar la lista de proyectos
       await fetchProjects();

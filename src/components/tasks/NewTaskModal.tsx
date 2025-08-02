@@ -53,7 +53,7 @@ export default function NewTaskModal({ open, onClose, onCreate }: NewTaskModalPr
         title: 'Tarea creada',
         onView: () => {
           // Aquí podrías implementar la navegación a la tarea
-          console.log('Ver tarea creada');
+
         }
       });
 

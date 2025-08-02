@@ -38,8 +38,8 @@ export function AmplifyProvider({ children }: { children: ReactNode }) {
           loginId: currentUser.signInDetails?.loginId
         }
       });
-    } catch (error) {
-      console.log("No hay usuario autenticado", error);
+    } catch {
+
       setUser(null);
     }
   }, []);
@@ -57,7 +57,7 @@ export function AmplifyProvider({ children }: { children: ReactNode }) {
 
   // Configurar Amplify y verificar usuario al cargar
   useEffect(() => {
-    console.log("Configurando Amplify...");
+
     Amplify.configure(config);
     
     // Verificar usuario actual

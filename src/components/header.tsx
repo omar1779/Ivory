@@ -156,7 +156,7 @@ export default function Header() {
             <div className="hidden lg:flex lg:flex-1 lg:justify-end items-center gap-4">
               <div className="flex items-center gap-2 text-sm text-gray-200">
                 <div className="relative">
-                  {/* <FiUser size={20} className="text-indigo-400" /> */}
+
                   <FiCheckCircle 
                     size={20} 
                     className=" text-green-400 bg-gray-900 rounded-full animate-pulse" 

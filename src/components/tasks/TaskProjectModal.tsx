@@ -79,7 +79,7 @@ export function TaskProjectModal({
 
       const handleViewTrash = () => {
         // Navegar a la papelera o mostrar vista de eliminados
-        console.log('Ver papelera');
+
       };
 
       // Mostrar notificación de éxito con opción de deshacer

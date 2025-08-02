@@ -6,8 +6,8 @@ import { useState, useEffect } from 'react';
 import LexicalNoteEditor from './LexicalNoteEditor';
 import { Note } from '@/lib/types/note';
 import { Button } from '../ui/button';
-// Usando solo los íconos necesarios
-import { Save, X, Pin, Tag as TagIcon, Folder } from 'lucide-react';
+import { extractTitleFromContent, cleanTitle } from '@/lib/utils/titleExtractor';
+import { Save, X, Tag as TagIcon, Folder } from 'lucide-react';
 
 interface NoteEditorProps {
   note?: Note;
@@ -18,22 +18,31 @@ interface NoteEditorProps {
 }
 
 export default function NoteEditor({ note, onSave, onCancel, isSaving = false, folders = [] }: NoteEditorProps) {
-  const [title, setTitle] = useState(note?.title || '');
   const [content, setContent] = useState(note?.content || '');
   const [tags, setTags] = useState<string[]>(note?.tags || []);
   const [folder, setFolder] = useState(note?.folder || '');
-  const [isPinned, setIsPinned] = useState(note?.isPinned || false);
+  const [, setIsPinned] = useState(note?.isPinned || false);
   const [tagInput, setTagInput] = useState('');
+  
+  // Título se extrae automáticamente del contenido
+  // Si no hay contenido en el editor, usar el contenido de la nota original
+  const titleContent = content || note?.content || '';
+  const title = extractTitleFromContent(titleContent);
 
   useEffect(() => {
     if (note) {
-      setTitle(note.title);
-      setContent(note.content);
+      setContent(note.content || '');
       setTags(note.tags || []);
       setFolder(note.folder || '');
       setIsPinned(note.isPinned || false);
+    } else {
+      // Reset form when no note is selected
+      setContent('');
+      setTags([]);
+      setFolder('');
+      setIsPinned(false);
     }
-  }, [note]);
+  }, [note]); // Include note to satisfy linter
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim()) {
@@ -47,35 +56,27 @@ export default function NoteEditor({ note, onSave, onCancel, isSaving = false, f
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSave({ title, content, tags, folder });
+    const cleanedTitle = cleanTitle(title);
+    await onSave({ title: cleanedTitle, content, tags, folder });
   };
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
-      <div className="flex-none border-b border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
-        <div className="w-full">
-          <div className="flex items-center gap-3">
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Título de la nota"
-              className="flex-1 bg-transparent text-2xl font-semibold border-none focus:ring-0 focus:outline-none dark:text-white placeholder-gray-400 px-2 py-1 rounded"
-            />
-            <button
-              onClick={() => setIsPinned(!isPinned)}
-              className={`p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 ${isPinned ? 'text-yellow-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
-              title={isPinned ? 'Desfijar nota' : 'Fijar nota'}
-            >
-              <Pin className={`w-5 h-5 ${isPinned ? 'fill-current' : ''}`} />
-            </button>
+    <div className="h-full w-full flex flex-col bg-white dark:bg-gray-900 rounded-lg md:rounded-2xl shadow-sm md:shadow-lg">
+      {/* Title Preview */}
+      {title && title !== 'Sin título' && (
+        <div className="px-3 py-2 md:px-4 md:py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-t-lg md:rounded-t-2xl">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Título:</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+              {title}
+            </span>
           </div>
         </div>
-      </div>
-
+      )}
+      
       <div className="flex-1 flex flex-col min-h-0 relative">
         <div className="flex-1 overflow-hidden flex flex-col">
-          <LexicalNoteEditor value={content} onChange={setContent} />
+          <LexicalNoteEditor value={content} onChange={setContent} noteId={note?.id} />
         </div>
       </div>
 

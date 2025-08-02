@@ -2,7 +2,7 @@
 import React, { useState, forwardRef } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-export interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+export type PasswordInputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
 /**
  * Text input with a toggle button to show / hide the password value.

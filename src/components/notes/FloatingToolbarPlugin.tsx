@@ -24,8 +24,7 @@ export default function FloatingToolbarPlugin() {
     const selection = $getSelection();
     
     if ($isRangeSelection(selection)) {
-      const anchorNode = selection.anchor.getNode();
-      const focusNode = selection.focus.getNode();
+
       const domSelection = window.getSelection();
 
       if (domSelection && !selection.isCollapsed()) {
@@ -75,14 +74,17 @@ export default function FloatingToolbarPlugin() {
       const editorRect = document.querySelector(".editor-container")?.getBoundingClientRect();
       if (!editorRect) return;
       
-      // Posiciona la barra encima de la selección
-      const top = selectionRect.top - editorRect.top - toolbar.offsetHeight - 10;
+      // Posiciona la barra mucho más arriba de la selección para evitar interferir con el texto
+      const top = selectionRect.top - editorRect.top - toolbar.offsetHeight - 70; // Aumentado a 50px para mayor separación
       const left = selectionRect.left - editorRect.left + (selectionRect.width / 2) - (toolbar.offsetWidth / 2);
       
       // Asegúrate de que la barra no se salga del editor
       const boundedLeft = Math.max(10, Math.min(left, editorRect.width - toolbar.offsetWidth - 10));
       
-      toolbar.style.top = `${Math.max(10, top)}px`;
+      // Si la barra se saldría por arriba, posiciónala debajo de la selección con mayor separación
+      const finalTop = top < 10 ? selectionRect.bottom - editorRect.top + 30 : top;
+      
+      toolbar.style.top = `${Math.max(10, finalTop)}px`;
       toolbar.style.left = `${boundedLeft}px`;
     }
   }, [selectionRect, isVisible]);
@@ -138,8 +140,9 @@ export default function FloatingToolbarPlugin() {
       <button
         onClick={() => {
           // Llamamos a la función global expuesta por CommentPlugin
-          if ((window as any).lexicalAddComment) {
-            (window as any).lexicalAddComment();
+          const win = window as Window & { lexicalAddComment?: () => void };
+          if (win.lexicalAddComment) {
+            win.lexicalAddComment();
           }
         }}
         className="toolbar-item"

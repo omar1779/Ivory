@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { ProjectBoard } from '@/components/projects/ProjectBoard';
 import { useProjects } from '@/lib/hooks/useProjects';
-import { Project, ProjectWithTasksAndSubProjects } from '@/lib/types/project';
+import { ProjectWithTasksAndSubProjects } from '@/lib/types/project';
 import { useNotification } from '@/components/ui/NotificationProvider';
 import DeleteProjectDialog from '@/components/projects/DeleteProjectDialog';
 
@@ -66,8 +66,8 @@ export default function ProjectsPage() {
             throw error;
           }
         }}
-        onEditProject={(project: Project) => {
-          console.log('Editar proyecto:', project);
+        onEditProject={() => {
+          // TODO: Implement project editing functionality
         }}
         onDeleteProject={handleDeleteProject}
       />

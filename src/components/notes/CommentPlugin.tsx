@@ -5,13 +5,10 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { 
   $getSelection, 
   $isRangeSelection,
-  SELECTION_CHANGE_COMMAND,
-  TextNode,
-  $createTextNode,
-  $isTextNode
+  SELECTION_CHANGE_COMMAND
 } from 'lexical';
 import { mergeRegister } from '@lexical/utils';
-import { MessageSquare, X, ChevronUp, ChevronDown, Eye, EyeOff } from 'lucide-react';
+import { MessageSquare, X, Eye, EyeOff } from 'lucide-react';
 
 interface Comment {
   id: string;
@@ -24,7 +21,7 @@ interface Comment {
 export default function CommentPlugin() {
   const [editor] = useLexicalComposerContext();
   const [comments, setComments] = useState<Comment[]>([]);
-  const [activeComment, setActiveComment] = useState<Comment | null>(null);
+  const [, setActiveComment] = useState<Comment | null>(null);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [currentSelection, setCurrentSelection] = useState<{
@@ -161,7 +158,7 @@ export default function CommentPlugin() {
     
     return () => {
       // Limpieza al desmontar
-      const win = window as any;
+      const win = window as Window & { lexicalAddComment?: () => void };
       if (win.lexicalAddComment) {
         delete win.lexicalAddComment;
       }
@@ -205,7 +202,7 @@ export default function CommentPlugin() {
           </div>
           <div className="comment-modal-body">
             <div className="comment-selection-text">
-              "{currentSelection?.text}"
+              &ldquo;{currentSelection?.text}&rdquo;
             </div>
             <textarea
               value={commentText}

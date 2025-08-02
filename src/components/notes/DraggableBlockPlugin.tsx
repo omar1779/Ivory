@@ -3,16 +3,11 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import {
-  $getSelection,
-  $createParagraphNode,
   $getNodeByKey,
   $isParagraphNode,
-  $isRootOrShadowRoot,
   COMMAND_PRIORITY_EDITOR,
   createCommand,
-  ElementNode,
-  NodeKey,
-  ParagraphNode
+  ParagraphNode,
 } from 'lexical';
 import { mergeRegister } from '@lexical/utils';
 import { MdDragIndicator } from 'react-icons/md';
@@ -204,7 +199,7 @@ export default function DraggableBlockPlugin() {
     // Esperar un momento para que el DOM esté listo
     const timer = setTimeout(() => {
       recalculateBlockPositions();
-      console.log('Posiciones recalculadas, bloques encontrados:', blockPositions.size);
+
     }, 500);
     
     // También recalcular cuando cambia el tamaño de la ventana
