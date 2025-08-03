@@ -7,7 +7,7 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
-import { ListItemNode } from '@lexical/list';
+import { ListItemNode, ListNode } from '@lexical/list';
 import { CodeHighlightNode, CodeNode } from '@lexical/code';
 import { AutoLinkNode, LinkNode } from '@lexical/link';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
@@ -41,6 +41,7 @@ const editorConfig = {
   nodes: [
     HeadingNode,
     QuoteNode,
+    ListNode,
     ListItemNode,
     LinkNode,
     CodeHighlightNode,
